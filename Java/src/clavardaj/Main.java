@@ -4,6 +4,8 @@ import clavardaj.frame.MainFrame;
 
 public class Main {
 	
+	public static final boolean DEBUG = true;
+	
 	public static void main(String[] args) {
 		MainFrame frame = new MainFrame();
 		frame.initFrame();
