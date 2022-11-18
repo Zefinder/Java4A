@@ -15,6 +15,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import clavardaj.controller.ListenerManager;
+
 public class MainFrame extends JFrame {
 
 	/**
@@ -70,9 +72,12 @@ public class MainFrame extends JFrame {
 
 		c.gridy = 1;
 		JButton confirm = new JButton("Login !");
-		confirm.addActionListener(e -> JOptionPane.showOptionDialog(this, "I do not wish to be horny anymore !",
-				"Silence wench !", JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE, null,
-				new String[] { "I just want to be happy" }, null));
+		confirm.addActionListener(e -> {
+			JOptionPane.showOptionDialog(this, "I do not wish to be horny anymore !", "Silence wench !",
+					JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[] { "I just want to be happy" },
+					null);
+			ListenerManager.getInstance().fireAgentLogin(null);
+		});
 
 		framePanel.add(confirm, c);
 //		framePanel.setOpaque(false);
