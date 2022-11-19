@@ -27,7 +27,7 @@ public class MainFrame extends JFrame {
 		this.setTitle("Clavardaj - Login");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setResizable(false);
-		this.setSize(500, 300);
+		this.setSize(500, 500);
 		this.setLocationRelativeTo(null);
 
 		JPanel framePanel = buildTotalPanel();
@@ -37,7 +37,7 @@ public class MainFrame extends JFrame {
 			 * 
 			 */
 			private static final long serialVersionUID = 9047709955198397813L;
-			Image backgroundImage = new ImageIcon(this.getClass().getResource("silence.png")).getImage();
+			Image backgroundImage = new ImageIcon(this.getClass().getResource("background.png")).getImage();
 
 			@Override
 			public void paintComponent(Graphics g) {
@@ -70,14 +70,13 @@ public class MainFrame extends JFrame {
 
 		c.gridy = 1;
 		JButton confirm = new JButton("Login !");
-		confirm.addActionListener(e -> JOptionPane.showOptionDialog(this, "I do not wish to be horny anymore !",
-				"Silence wench !", JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE, null,
-				new String[] { "I just want to be happy" }, null));
+		confirm.addActionListener(
+				e -> JOptionPane.showMessageDialog(this, "Not implemented yet!", "Error", JOptionPane.ERROR_MESSAGE));
 
 		framePanel.add(confirm, c);
 //		framePanel.setOpaque(false);
 
-		framePanel.setBackground(new Color(0.8f, 0.8f, 0.8f, 0.25f));
+		framePanel.setBackground(new Color(0.8f, 0.8f, 0.8f, 0.45f));
 		return framePanel;
 	}
 
