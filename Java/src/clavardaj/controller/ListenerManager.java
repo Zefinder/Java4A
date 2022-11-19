@@ -31,6 +31,10 @@ public class ListenerManager {
 		loginListenerList = new ArrayList<>();
 		loginChangeListenerList = new ArrayList<>();
 		messageListenerList = new ArrayList<>();
+		conversationListenerList = new ArrayList<>();
+		databaseListenerList = new ArrayList<>();
+		messageToTransferListenerList = new ArrayList<>();
+		requestMessageListenerList = new ArrayList<>();
 	}
 
 	public void addLoginListener(LoginListener listener) {
