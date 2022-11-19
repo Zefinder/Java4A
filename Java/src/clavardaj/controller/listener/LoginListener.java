@@ -8,4 +8,8 @@ public interface LoginListener {
 
 	void onAgentLogout(Agent agent);
 	
+	void onSelfLogin();
+	
+	void onSelfLogout();
+	
 }

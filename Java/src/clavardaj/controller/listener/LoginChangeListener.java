@@ -4,6 +4,8 @@ import clavardaj.model.Agent;
 
 public interface LoginChangeListener {
 
-	void fireAgentLoginChange(Agent agent, String newLogin);
+	void onAgentLoginChange(Agent agent, String newLogin);
+	
+	void onSelfLoginChange(String newLogin);
 	
 }

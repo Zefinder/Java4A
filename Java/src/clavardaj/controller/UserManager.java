@@ -30,4 +30,16 @@ public class UserManager implements LoginListener {
 	public void onAgentLogout(Agent agent) {
 		agentList.remove(agent);
 	}
+
+	@Override
+	public void onSelfLogin() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSelfLogout() {
+		// TODO Auto-generated method stub
+		
+	}
 }
