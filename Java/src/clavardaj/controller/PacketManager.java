@@ -37,7 +37,7 @@ public class PacketManager implements Runnable {
 
 	private final int UDP_PORT = 1233;
 	private final int TCP_PORT = 1234;
-	
+
 	private int nextAvailablePort;
 
 	private PacketManager() {
@@ -61,20 +61,21 @@ public class PacketManager implements Runnable {
 				Socket socket = server.accept();
 				new DataOutputStream(socket.getOutputStream()).writeInt(nextAvailablePort++);
 				socket.close();
-				
+
 				newServer = new ServerSocket(nextAvailablePort);
 				socket = newServer.accept();
 				distantSockets.add(socket);
+				new DataOutputStream(socket.getOutputStream()).writeUTF("Salut mec");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
-	public void setPort(int port) {
+	public void setPort() {
 		try {
-			server = new DatagramSocket(port);
+			server = new DatagramSocket(UDP_PORT);
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
@@ -85,8 +86,9 @@ public class PacketManager implements Runnable {
 
 			@Override
 			public void run() {
-				// TODO: Vérifier que l'UDP de connexion ne vient pas d'une connexion déjà présente
-				
+				// TODO: Vérifier que l'UDP de connexion ne vient pas d'une connexion déjà
+				// présente
+
 				while (true) {
 					// On prend le paquet UDP
 					DatagramPacket packet = new DatagramPacket(buf, buf.length);
@@ -102,7 +104,7 @@ public class PacketManager implements Runnable {
 					packet = new DatagramPacket(buf, buf.length, address, port);
 
 					String sDistantPort = new String(packet.getData(), 0, packet.getLength()).trim();
-					
+
 					int distantPort;
 					try {
 						distantPort = Integer.valueOf(sDistantPort);
@@ -114,7 +116,8 @@ public class PacketManager implements Runnable {
 					if (Main.DEBUG)
 						System.out.println("Nouvelle connexion initiée au port " + distantPort);
 
-					// On ouvre une connexion TCP entre les deux PacketManager. On se fera rediriger...
+					// On ouvre une connexion TCP entre les deux PacketManager. On se fera
+					// rediriger...
 					try {
 						Socket client = new Socket(address, distantPort);
 						DataInputStream in = new DataInputStream(client.getInputStream());
@@ -126,11 +129,14 @@ public class PacketManager implements Runnable {
 
 						client.close();
 						client = new Socket(address, newPort);
-						
+
 						in = new DataInputStream(client.getInputStream());
 						// On lance l'écoute de paquets pour TCP
 						new Thread(new PacketThread(in)).start();
 						distantSockets.add(client);
+
+						if (Main.DEBUG)
+							System.out.println("[Server]: Message Reçu " + in.readUTF());
 
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -144,10 +150,10 @@ public class PacketManager implements Runnable {
 	}
 
 	private void broadcastLogin() {
-		// On envoie qu'on est connecté sur le port UDP (port UDP_PORT pour tout le monde)
+		// On envoie qu'on est connecté sur le port UDP (port UDP_PORT pour tout le
+		// monde)
 		// On dit que notre redirection TCP est sur TCP_PORT
-		
-		
+
 	}
 
 	public void sendPacket(DataOutputStream outputStream, PacketToEmit packet) {
@@ -167,23 +173,23 @@ public class PacketManager implements Runnable {
 	}
 
 	public static void main(String[] args) throws IOException {
-		byte[] buf;
-		PacketManager.getInstance().setPort(1234);
-
-		ServerSocket serverSocket = new ServerSocket(1236);
-
-		buf = "1236".getBytes();
-		DatagramSocket socket = new DatagramSocket();
-		DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName("localhost"), 1234);
-		socket.send(packet);
-		socket.close();
-
-		Socket s = serverSocket.accept();
-		DataOutputStream out = new DataOutputStream(s.getOutputStream());
-		DataInputStream in = new DataInputStream(s.getInputStream());
-
-		System.out.println("[Client]: Message reçu : " + in.readUTF());
-		out.writeUTF("Salut !");
+//		byte[] buf;
+//		PacketManager.getInstance().setPort(1234);
+//
+//		ServerSocket serverSocket = new ServerSocket(1236);
+//
+//		buf = "1236".getBytes();
+//		DatagramSocket socket = new DatagramSocket();
+//		DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName("localhost"), 1234);
+//		socket.send(packet);
+//		socket.close();
+//
+//		Socket s = serverSocket.accept();
+//		DataOutputStream out = new DataOutputStream(s.getOutputStream());
+//		DataInputStream in = new DataInputStream(s.getInputStream());
+//
+//		System.out.println("[Client]: Message reçu : " + in.readUTF());
+//		out.writeUTF("Salut !");
 
 	}
 
