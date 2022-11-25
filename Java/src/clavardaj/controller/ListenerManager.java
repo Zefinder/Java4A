@@ -1,7 +1,5 @@
 package clavardaj.controller;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,12 +95,20 @@ public class ListenerManager {
 		messageListenerList.forEach(listener -> listener.onMessageSent(agent, message));
 	}
 
-	public void fireMessageToSend(DataOutputStream stream, String message) {
-		messageToTransferListenerList.forEach(listener -> listener.onMessageToSend(stream, message));
+	public void fireMessageToSend(Agent agent, String message) {
+		messageToTransferListenerList.forEach(listener -> listener.onMessageToSend(agent, message));
 	}
 
-	public void fireMessageToReceive(DataInputStream stream, String message) {
-		messageToTransferListenerList.forEach(listener -> listener.onMessageToReceive(stream));
+	public void fireMessageToReceive(Agent agent) {
+		messageToTransferListenerList.forEach(listener -> listener.onMessageToReceive(agent));
+	}
+
+	public void fireConversationOpening(Agent agent) {
+		conversationListenerList.forEach(listener -> listener.onConversationOpening(agent));
+	}
+
+	public void fireConversationClosing(Agent agent) {
+		conversationListenerList.forEach(listener -> listener.onConversationClosing(agent));
 	}
 
 	public void fireConversationOpened(Agent agent) {

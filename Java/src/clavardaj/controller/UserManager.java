@@ -9,8 +9,8 @@ public class UserManager implements LoginListener {
 
 	private static final UserManager instance = new UserManager();
 	
-	List<Agent> agentList;
-	Agent currentAgent;
+	private List<Agent> agentList;
+	private Agent currentAgent;
 	
 	private UserManager() {
 		

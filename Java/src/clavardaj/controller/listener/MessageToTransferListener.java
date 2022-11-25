@@ -1,12 +1,11 @@
 package clavardaj.controller.listener;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import clavardaj.model.Agent;
 
 public interface MessageToTransferListener {
 
-	void onMessageToSend(DataOutputStream stream, String string);
+	void onMessageToSend(Agent agent, String string);
 	
-	void onMessageToReceive(DataInputStream stream);
+	void onMessageToReceive(Agent agent);
 	
 }
