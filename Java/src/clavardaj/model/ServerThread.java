@@ -9,9 +9,4 @@ public class ServerThread extends UserThread {
 		super(agent, port, in, out);
 	}
 
-	@Override
-	public void setup() {
-		
-	}
-
 }

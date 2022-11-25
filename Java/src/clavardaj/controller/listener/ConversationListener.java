@@ -4,7 +4,7 @@ import clavardaj.model.Agent;
 
 public interface ConversationListener {
 	
-	void onConversationOpening(Agent agent);
+	void onConversationOpening(Agent agent, int localPort);
 	
 	void onConversationClosing(Agent agent);
 	

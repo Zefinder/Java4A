@@ -10,7 +10,7 @@ import java.io.IOException;
  * @author nicolas
  *
  */
-public abstract class UserThread {
+public class UserThread {
 
 	private Agent agent;
 	private int serverPort;
@@ -32,15 +32,16 @@ public abstract class UserThread {
 			e.printStackTrace();
 			message = "";
 		}
+		System.out.println("message reçu : " + message);
 		return message;
 	}
 	
 	public void write(String message) {
 		try {
-			out.write(message);
+			System.out.println("envoi message : " + message);
+			out.write(message + "\n");
 			out.flush();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -9,11 +9,4 @@ public class ClientThread extends UserThread {
 		super(agent, port, in, out);
 	}
 
-	@Override
-	public void setup() {
-		// TODO Auto-generated method stub
-		
-	}
-
-
 }

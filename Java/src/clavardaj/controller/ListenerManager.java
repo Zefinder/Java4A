@@ -61,7 +61,7 @@ public class ListenerManager {
 
 	public void addRequestMessageListener(RequestMessageListener listener) {
 		requestMessageListenerList.add(listener);
-	}
+	}			
 
 	public void fireAgentLogin(Agent agent) {
 		loginListenerList.forEach(listener -> listener.onAgentLogin(agent));
@@ -103,8 +103,8 @@ public class ListenerManager {
 		messageToTransferListenerList.forEach(listener -> listener.onMessageToReceive(agent));
 	}
 
-	public void fireConversationOpening(Agent agent) {
-		conversationListenerList.forEach(listener -> listener.onConversationOpening(agent));
+	public void fireConversationOpening(Agent agent, int localPort) {
+		conversationListenerList.forEach(listener -> listener.onConversationOpening(agent, localPort));
 	}
 
 	public void fireConversationClosing(Agent agent) {
