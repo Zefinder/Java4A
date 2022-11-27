@@ -15,8 +15,6 @@ public class PacketRcvLogin implements PacketToReceive {
 
 	@Override
 	public void processPacket() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override

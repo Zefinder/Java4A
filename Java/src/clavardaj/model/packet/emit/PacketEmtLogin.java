@@ -16,4 +16,8 @@ public class PacketEmtLogin implements PacketToEmit {
 		stream.writeUTF(name);
 	}
 
+	@Override
+	public String toString() {
+		return String.format("[PacketEmtLogin]: name = %s", name);
+	}
 }
