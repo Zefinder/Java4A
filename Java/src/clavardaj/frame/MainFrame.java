@@ -15,8 +15,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import clavardaj.controller.PacketManager;
-import clavardaj.model.packet.emit.PacketEmtLogin;
 import clavardaj.controller.ListenerManager;
 
 public class MainFrame extends JFrame {

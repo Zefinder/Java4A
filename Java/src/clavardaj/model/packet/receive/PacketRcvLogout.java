@@ -7,26 +7,20 @@ import java.util.UUID;
 import clavardaj.controller.ListenerManager;
 import clavardaj.model.Agent;
 
-public class PacketRcvLogin implements PacketToReceive {
+public class PacketRcvLogout implements PacketToReceive {
 
+	private UUID uuid;
 	private String name;
 
 	@Override
 	public void initFromStream(DataInputStream stream) throws IOException {
+		uuid = UUID.fromString(stream.readUTF());
 		name = stream.readUTF();
-
 	}
 
 	@Override
 	public void processPacket() {
-		UUID uuid = UUID.randomUUID();
-		Agent agent = new Agent(uuid, name);
-		ListenerManager.getInstance().fireAgentLogin(agent);
+		ListenerManager.getInstance().fireAgentLogout(new Agent(uuid, name));
 	}
 
-	@Override
-	public String toString() {
-		return String.format("[PacketRcvLogin]: name = %s", name);
-	}
-	
 }

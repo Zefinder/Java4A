@@ -8,9 +8,9 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import clavardaj.controller.listener.ConversationListener;
 import clavardaj.controller.listener.MessageToTransferListener;
@@ -113,7 +113,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 //		ListenerManager.getInstance().fireMessageToSend(agent2, "Coucou bebou");
 
 		InetAddress ip = InetAddress.getLocalHost();
-		Agent agent1 = new Agent(0, ip, 1742);
+		Agent agent1 = new Agent(UUID.randomUUID(), ip, 1742, "Bébou");
 		System.out.println("[Manager] création thread");
 		ListenerManager.getInstance().fireConversationOpened(agent1);
 		System.out.println("[Manager] thread créés");

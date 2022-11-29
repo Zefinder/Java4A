@@ -22,10 +22,28 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import clavardaj.Main;
 import clavardaj.model.packet.emit.PacketEmtLogin;
+import clavardaj.model.packet.emit.PacketEmtLogout;
 import clavardaj.model.packet.emit.PacketToEmit;
 import clavardaj.model.packet.receive.PacketRcvLogin;
+import clavardaj.model.packet.receive.PacketRcvLogout;
 import clavardaj.model.packet.receive.PacketToReceive;
 
+/**
+ * 
+ * Deux scénarios :<br/>
+ * <ul>
+ * <li>On se login et on envoie un paquet UDP avec le numéro de port de la porte
+ * TCP. On reçoit une réponse TCP et on redirige vers un nouveau port disponible
+ * ! On enregistre ensuite la socket et on lance l'écoute de packet
+ * 
+ * <li>On était déjà login et on reçoit un paquet UDP. On crée donc une
+ * connection vers la porte TCP (port contenu dans le message). On reçoit
+ * ensuite un numéro de port libre pour la connection TCP continue
+ * </ul>
+ * 
+ * @author Adrien Jakubiak
+ *
+ */
 public class PacketManager implements Runnable {
 
 	private static final PacketManager instance = new PacketManager();
@@ -63,8 +81,10 @@ public class PacketManager implements Runnable {
 		}
 
 		idToPacket.put(0, PacketRcvLogin.class);
+		idToPacket.put(1, PacketRcvLogout.class);
 
 		packetToId.put(PacketEmtLogin.class, 0);
+		packetToId.put(PacketEmtLogout.class, 1);
 
 		new Thread(this).start();
 	}
@@ -95,8 +115,10 @@ public class PacketManager implements Runnable {
 				if (Main.DEBUG)
 					System.out.println("[Server]: Client redirected, ready to transfer packets!");
 
-				DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-				sendPacket(out, new PacketEmtLogin("Bébou"));
+				DataInputStream in = new DataInputStream(socket.getInputStream());
+				// On lance l'écoute de paquets pour TCP
+				new Thread(new PacketThread(in)).start();
+				distantSockets.add(socket);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -104,7 +126,7 @@ public class PacketManager implements Runnable {
 
 	}
 
-	public void setPort() {
+	public void init() {
 		try {
 			server = new DatagramSocket(UDP_PORT);
 		} catch (SocketException e) {
@@ -235,8 +257,12 @@ public class PacketManager implements Runnable {
 		return instance;
 	}
 
+	public DataOutputStream getLocalPipe() {
+		return null;
+	}
+
 	public static void main(String[] args) throws IOException {
-		instance.setPort();
+		instance.init();
 //		System.out.println(InetAddress.getLocalHost().getHostAddress());
 	}
 
@@ -255,6 +281,7 @@ public class PacketManager implements Runnable {
 			PacketToReceive packet = clazz.getDeclaredConstructor().newInstance();
 
 			packet.initFromStream(inputStream);
+
 			if (Main.DEBUG)
 				System.out.println("[Server]: Packet fully read: " + packet);
 
