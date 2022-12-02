@@ -4,10 +4,19 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
+
+import clavardaj.model.Agent;
+import clavardaj.model.Message;
 
 public class DBManager {
 
 	private static final DBManager instance = new DBManager();
+	private Connection connection;
+	private java.sql.Statement statement;
+	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 	private DBManager() {
 		// Initialisation de la base de donnée
@@ -23,8 +32,8 @@ public class DBManager {
 		DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
 
 		// Connection à la DB
-		Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/clavardaj", "root", "");
-		java.sql.Statement statement = connection.createStatement();
+		connection = DriverManager.getConnection("jdbc:mysql://localhost/clavardaj", "root", "");
+		statement = connection.createStatement();
 
 		// Vérification de l'existance des tables (sinon création)
 		// CREATE TABLE `clavardaj`.`user` ( `uuid` VARCHAR(36) NOT NULL , `login`
@@ -60,8 +69,20 @@ public class DBManager {
 
 		if (!message) {
 			statement.execute(
-					"CREATE TABLE `clavardaj`.`message` ( `userSend` VARCHAR(36) NOT NULL , `userRcv` VARCHAR(36) NOT NULL , `date` DATE NOT NULL , `content` VARCHAR(2048) NOT NULL , PRIMARY KEY (`userSend`, `userRcv`, `date`));");
+					"CREATE TABLE `clavardaj`.`message` ( `userSend` VARCHAR(36) NOT NULL , `userRcv` VARCHAR(36) NOT NULL , `date` DATETIME NOT NULL , `content` VARCHAR(2048) NOT NULL , PRIMARY KEY (`userSend`, `userRcv`, `date`));");
 		}
+	}
+
+	public void addMessage(Message message) throws SQLException {
+		statement.execute(String.format(
+				"INSERT INTO `message` (`userSend`, `userRcv`, `date`, `content`) VALUES ('%s', '%s', '%s', '%s');",
+				message.getSender().getUuid(), message.getReceiver().getUuid(), message.getDate().format(formatter),
+				message.getContent()));
+	}
+
+	public void addUser(Agent agent, String passwd) throws SQLException {
+		statement.execute(String.format("INSERT INTO `user` (`uuid`, `login`, `passwd`) VALUES ('%s', '%s', '%s');",
+				agent.getUuid(), agent.getName(), passwd));
 	}
 
 	public static DBManager getInstance() {
@@ -80,7 +101,13 @@ public class DBManager {
 //		out.writeUTF("Coucou!");
 //	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 		DBManager manager = DBManager.instance;
+		Agent a = new Agent(UUID.randomUUID(), "Bébou");
+		Agent b = new Agent(UUID.randomUUID(), "B");
+		
+		Message m = new Message("BEBOUUUUUUUU", a, b, LocalDateTime.now());
+		manager.addUser(a, "cube");
+		manager.addMessage(m);
 	}
 }

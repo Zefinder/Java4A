@@ -1,17 +1,35 @@
 package clavardaj.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class Message {
 
-	private String contenu;
+	private String content;
 	private Agent sender;
-	private Date date;
+	private Agent receiver;
+	private LocalDateTime date;
 
-	public Message(String contenu, Agent sender, Date date) {
-		this.contenu = contenu;
+	public Message(String content, Agent sender, Agent receiver, LocalDateTime date) {
+		this.content = content;
 		this.sender = sender;
+		this.receiver = receiver;
 		this.date = date;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public Agent getSender() {
+		return sender;
+	}
+
+	public Agent getReceiver() {
+		return receiver;
+	}
+
+	public LocalDateTime getDate() {
+		return date;
 	}
 
 }
