@@ -32,4 +32,9 @@ public class Message {
 		return date;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("[%s] %s -> %s : %s", date.toString(), sender.toString(), receiver.toString(), content);
+	}
+
 }

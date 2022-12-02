@@ -1,6 +1,8 @@
 package clavardaj.controller;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import clavardaj.controller.listener.LoginListener;
 import clavardaj.model.Agent;
@@ -13,11 +15,21 @@ public class UserManager implements LoginListener {
 	private Agent currentAgent;
 	
 	private UserManager() {
+		agentList = new ArrayList<>();
 		
+		ListenerManager.getInstance().addLoginListener(this);
 	}
 
 	public static UserManager getInstance() {
 		return instance;
+	}
+	
+	public Agent getAgentByUuid(UUID uuid) {
+		for (Agent agent : agentList) {
+			if (agent.getUuid().equals(uuid))
+				return agent;
+		}
+		return null;
 	}
 	
 	@Override

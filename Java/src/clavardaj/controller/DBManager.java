@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import clavardaj.model.Agent;
@@ -85,6 +87,43 @@ public class DBManager {
 				agent.getUuid(), agent.getName(), passwd));
 	}
 
+	public List<? extends Message> requestMessages(Agent agent) throws SQLException {
+		List<Message> messages = new ArrayList<>();
+
+		ResultSet resultSet = statement.executeQuery(
+				String.format("SELECT `message`.* FROM `message` WHERE userSend = '%s' OR userRcv = '%s';",
+						agent.getUuid(), agent.getUuid()));
+
+		while (resultSet.next()) {
+			String content = resultSet.getString("content");
+			UUID userSend = UUID.fromString(resultSet.getString("userSend"));
+			UUID userRcv = UUID.fromString(resultSet.getString("userRcv"));
+			LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
+			UserManager umanager = UserManager.getInstance();
+
+			messages.add(
+					new Message(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date));
+		}
+
+		return messages;
+	}
+
+	public Message requestMessage(Agent agent) throws SQLException {
+		ResultSet resultSet = statement.executeQuery(String.format(
+				"SELECT `message`.* FROM `message` WHERE userSend = '1544080c-8643-41cb-a2be-2962ce842b8a' OR userRcv = '1544080c-8643-41cb-a2be-2962ce842b8a' ORDER BY date DESC;",
+				agent.getUuid(), agent.getUuid()));
+
+		resultSet.next();
+
+		String content = resultSet.getString("content");
+		UUID userSend = UUID.fromString(resultSet.getString("userSend"));
+		UUID userRcv = UUID.fromString(resultSet.getString("userRcv"));
+		LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
+		UserManager umanager = UserManager.getInstance();
+
+		return new Message(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date);
+	}
+
 	public static DBManager getInstance() {
 		return instance;
 	}
@@ -103,11 +142,27 @@ public class DBManager {
 
 	public static void main(String[] args) throws SQLException {
 		DBManager manager = DBManager.instance;
-		Agent a = new Agent(UUID.randomUUID(), "Bébou");
-		Agent b = new Agent(UUID.randomUUID(), "B");
+		UserManager umanager = UserManager.getInstance();
 		
-		Message m = new Message("BEBOUUUUUUUU", a, b, LocalDateTime.now());
-		manager.addUser(a, "cube");
-		manager.addMessage(m);
+		Agent a = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce842b7a"), "a");
+		Agent b = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce842b8a"), "b");
+		Agent c = new Agent(UUID.fromString("154542c-8643-41cb-a2be-2962ce842b7a"), "c");
+		Agent d = new Agent(UUID.fromString("83574f09-3a2b-4778-96ec-3c74c69476cf"), "d");
+		Agent e = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce843b7a"), "e");
+
+		ListenerManager.getInstance().fireAgentLogin(a);
+		ListenerManager.getInstance().fireAgentLogin(b);
+		ListenerManager.getInstance().fireAgentLogin(c);
+		ListenerManager.getInstance().fireAgentLogin(d);
+		ListenerManager.getInstance().fireAgentLogin(e);
+
+		List<? extends Message> messages = manager.requestMessages(a);
+
+		messages.forEach(t -> System.out.println(t.toString()));
+
+		System.out.println();
+
+		Message message = manager.requestMessage(a);
+		System.out.println(message.toString());
 	}
 }
