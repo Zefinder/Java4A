@@ -61,12 +61,28 @@ public class ListenerManager {
 
 	public void addRequestMessageListener(RequestMessageListener listener) {
 		requestMessageListenerList.add(listener);
-	}			
+	}
 
+	/**
+	 * Notifies that an agent has logged onto the network. This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * </ul>
+	 * 
+	 * @param agent is the agent that just logged in
+	 */
 	public void fireAgentLogin(Agent agent) {
 		loginListenerList.forEach(listener -> listener.onAgentLogin(agent));
 	}
 
+	/**
+	 * Notifies that an agent has logged out of the network. This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * </ul>
+	 * 
+	 * @param agent is the agent that just logged out
+	 */
 	public void fireAgentLogout(Agent agent) {
 		loginListenerList.forEach(listener -> listener.onAgentLogout(agent));
 	}
@@ -87,37 +103,114 @@ public class ListenerManager {
 		loginChangeListenerList.forEach(listener -> listener.onSelfLoginChange(newLogin));
 	}
 
+	/**
+	 * Notifies that a message has been received so that it can be added in the
+	 * database. This should not be mistaken with fireMessageToReceive which notify
+	 * that a message is pending. This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * </ul>
+	 * 
+	 * @param agent   is the distant agent that sent the message
+	 * @param message is the message that has been received
+	 */
 	public void fireMessageReceived(Agent agent, Message message) {
 		messageListenerList.forEach(listener -> listener.onMessageReceived(agent, message));
 	}
 
+	/**
+	 * Notifies that a message has been sent so that it can be added in the
+	 * database. This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * </ul>
+	 * 
+	 * @param agent   is the agent that sent a message
+	 * @param message is the sent message
+	 */
 	public void fireMessageSent(Agent agent, String message) {
 		messageListenerList.forEach(listener -> listener.onMessageSent(agent, message));
 	}
 
+	/**
+	 * Notifies that a message is pending in the corresponding output buffer so that
+	 * the thread can send it. This should notify :
+	 * <ul>
+	 * <li>ThreadManager</li>
+	 * </ul>
+	 * 
+	 * @param agent   is the agent that sent a message
+	 * @param message is the message to send
+	 */
 	public void fireMessageToSend(Agent agent, String message) {
 		messageToTransferListenerList.forEach(listener -> listener.onMessageToSend(agent, message));
 	}
 
 	/**
+	 * Notifies that a message is pending in the corresponding input buffer so that
+	 * the thread can retrieve it. This should notify :
+	 * <ul>
+	 * <li>ThreadManager</li>
+	 * </ul>
+	 * 
 	 * @param agent is the agent that sent a message
 	 */
 	public void fireMessageToReceive(Agent agent) {
 		messageToTransferListenerList.forEach(listener -> listener.onMessageToReceive(agent));
 	}
 
+	/**
+	 * Notifies that the local agent is opening a conversation with a distant agent.
+	 * This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * <li>ThreadManager</li>
+	 * </ul>
+	 * 
+	 * @param agent is the distant agent
+	 */
 	public void fireConversationOpening(Agent agent, int localPort) {
 		conversationListenerList.forEach(listener -> listener.onConversationOpening(agent, localPort));
 	}
 
+	/**
+	 * Notifies that the local agent is closing a conversation with a distant agent.
+	 * This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * <li>ThreadManager</li>
+	 * </ul>
+	 * 
+	 * @param agent is the distant agent
+	 */
 	public void fireConversationClosing(Agent agent) {
 		conversationListenerList.forEach(listener -> listener.onConversationClosing(agent));
 	}
 
+	/**
+	 * Notifies that a distant agent has opened a conversation with the local agent.
+	 * This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * <li>ThreadManager</li>
+	 * </ul>
+	 * 
+	 * @param agent is the distant agent
+	 */
 	public void fireConversationOpened(Agent agent) {
 		conversationListenerList.forEach(listener -> listener.onConversationOpened(agent));
 	}
 
+	/**
+	 * Notifies that a distant agent has closed a conversation with the local agent.
+	 * This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * <li>ThreadManager</li>
+	 * </ul>
+	 * 
+	 * @param agent is the distant agent
+	 */
 	public void fireConversationClosed(Agent agent) {
 		conversationListenerList.forEach(listener -> listener.onConversationClosed(agent));
 	}
