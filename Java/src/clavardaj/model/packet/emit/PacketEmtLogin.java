@@ -6,11 +6,11 @@ import java.io.IOException;
 public class PacketEmtLogin implements PacketToEmit {
 
 	private String name;
-	
+
 	public PacketEmtLogin(String name) {
 		this.name = name;
 	}
-	
+
 	@Override
 	public void sendPacket(DataOutputStream stream) throws IOException {
 		stream.writeUTF(name);

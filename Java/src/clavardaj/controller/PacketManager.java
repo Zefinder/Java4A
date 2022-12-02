@@ -23,9 +23,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import clavardaj.Main;
 import clavardaj.model.packet.emit.PacketEmtLogin;
 import clavardaj.model.packet.emit.PacketEmtLogout;
+import clavardaj.model.packet.emit.PacketEmtOpenConversation;
 import clavardaj.model.packet.emit.PacketToEmit;
 import clavardaj.model.packet.receive.PacketRcvLogin;
 import clavardaj.model.packet.receive.PacketRcvLogout;
+import clavardaj.model.packet.receive.PacketRcvOpenConversation;
 import clavardaj.model.packet.receive.PacketToReceive;
 
 /**
@@ -82,9 +84,11 @@ public class PacketManager implements Runnable {
 
 		idToPacket.put(0, PacketRcvLogin.class);
 		idToPacket.put(1, PacketRcvLogout.class);
+		idToPacket.put(2, PacketRcvOpenConversation.class);
 
 		packetToId.put(PacketEmtLogin.class, 0);
 		packetToId.put(PacketEmtLogout.class, 1);
+		packetToId.put(PacketEmtOpenConversation.class, 2);
 
 		new Thread(this).start();
 	}

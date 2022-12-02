@@ -15,6 +15,7 @@ import java.util.UUID;
 import clavardaj.controller.listener.ConversationListener;
 import clavardaj.controller.listener.MessageToTransferListener;
 import clavardaj.model.Agent;
+import clavardaj.model.Message;
 import clavardaj.model.UserThread;
 
 public class ThreadManager implements MessageToTransferListener, ConversationListener {
@@ -92,10 +93,10 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 	public void onMessageToSend(Agent agent, String message) {
 		conversations.get(agent).write(message);
 	}
-
+	
 	@Override
 	public void onMessageToReceive(Agent agent) {
-		String message = conversations.get(agent).read();
+		Message message = conversations.get(agent).read(agent);
 		ListenerManager.getInstance().fireMessageReceived(agent, message);
 	}
 	

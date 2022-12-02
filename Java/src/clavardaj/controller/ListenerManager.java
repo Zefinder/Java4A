@@ -87,7 +87,7 @@ public class ListenerManager {
 		loginChangeListenerList.forEach(listener -> listener.onSelfLoginChange(newLogin));
 	}
 
-	public void fireMessageReceived(Agent agent, String message) {
+	public void fireMessageReceived(Agent agent, Message message) {
 		messageListenerList.forEach(listener -> listener.onMessageReceived(agent, message));
 	}
 
@@ -99,6 +99,9 @@ public class ListenerManager {
 		messageToTransferListenerList.forEach(listener -> listener.onMessageToSend(agent, message));
 	}
 
+	/**
+	 * @param agent is the agent that sent a message
+	 */
 	public void fireMessageToReceive(Agent agent) {
 		messageToTransferListenerList.forEach(listener -> listener.onMessageToReceive(agent));
 	}

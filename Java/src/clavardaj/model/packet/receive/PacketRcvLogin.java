@@ -13,8 +13,7 @@ public class PacketRcvLogin implements PacketToReceive {
 
 	@Override
 	public void initFromStream(DataInputStream stream) throws IOException {
-		name = stream.readUTF();
-
+		this.name = stream.readUTF();
 	}
 
 	@Override
@@ -28,5 +27,5 @@ public class PacketRcvLogin implements PacketToReceive {
 	public String toString() {
 		return String.format("[PacketRcvLogin]: name = %s", name);
 	}
-	
+
 }

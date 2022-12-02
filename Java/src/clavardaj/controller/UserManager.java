@@ -12,6 +12,10 @@ public class UserManager implements LoginListener {
 	private List<Agent> agentList;
 	private Agent currentAgent;
 	
+	public Agent getCurrentAgent() {
+		return currentAgent;
+	}
+
 	private UserManager() {
 		
 	}

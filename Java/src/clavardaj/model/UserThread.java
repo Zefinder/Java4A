@@ -3,6 +3,7 @@ package clavardaj.model;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 
 /**
@@ -24,15 +25,16 @@ public class UserThread {
 		this.out = out;
 	}
 	
-	public String read() {
-		String message;
+	public Message read(Agent sender) {
+		Message message;
+		String content = new String();
 		try {
-			 message = in.readLine();
+			  content = in.readLine();
 		} catch (IOException e) {
 			e.printStackTrace();
-			message = "";
 		}
-		System.out.println("message reçu : " + message);
+		message = new Message(content, sender);
+		
 		return message;
 	}
 	
