@@ -14,6 +14,7 @@ import java.net.Socket;
  */
 public abstract class UserThread {
 
+	@SuppressWarnings("unused")
 	private Socket socket;
 	private BufferedReader in;
 	private BufferedWriter out;
@@ -25,7 +26,6 @@ public abstract class UserThread {
 			this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			this.out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

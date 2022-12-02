@@ -87,18 +87,52 @@ public class ListenerManager {
 		loginListenerList.forEach(listener -> listener.onAgentLogout(agent));
 	}
 
+	/**
+	 * Notifies that the local agent has logged in in order to broadcast the
+	 * information to other agents. This should notify :
+	 * <ul>
+	 * <li>PacketManager</li>
+	 * </ul>
+	 */
 	public void fireSelfLogin() {
 		loginListenerList.forEach(LoginListener::onSelfLogin);
 	}
 
+	/**
+	 * Notifies that the local agent has logged out in order to broadcast the
+	 * information to other agents. This should notify :
+	 * <ul>
+	 * <li>PacketManager</li>
+	 * </ul>
+	 */
 	public void fireSelfLogout() {
 		loginListenerList.forEach(LoginListener::onSelfLogout);
 	}
 
+	/**
+	 * Notifies that an agent has changed its login in order to update its local
+	 * representation. This should notify :
+	 * <ul>
+	 * <li>PacketManager</li>
+	 * <li>DBManager</li>
+	 * </ul>
+	 * 
+	 * @param agent    is the distant agent that changed its login
+	 * @param newLogin is the new login the distant agent chose
+	 */
 	public void fireAgentLoginChange(Agent agent, String newLogin) {
 		loginChangeListenerList.forEach(listener -> listener.onAgentLoginChange(agent, newLogin));
 	}
 
+	/**
+	 * Notifies that the local agent has changed its login in order to broadcast the
+	 * change to other agents. This should notify :
+	 * <ul>
+	 * <li>PacketManager</li>
+	 * </ul>
+	 * 
+	 * @param newLogin is the new login to send to the other agents
+	 */
 	public void fireSelfLoginChange(String newLogin) {
 		loginChangeListenerList.forEach(listener -> listener.onSelfLoginChange(newLogin));
 	}
@@ -223,10 +257,28 @@ public class ListenerManager {
 		databaseListenerList.forEach(listener -> listener.onAllMessagesTransfered(messages));
 	}
 
+	/**
+	 * Sends a request for the last stored message exchanged with an agent to the
+	 * database. This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * </ul>
+	 * 
+	 * @param agent is the agent with which the message was exchanged
+	 */
 	public void fireRequestMessage(Agent agent) {
 		requestMessageListenerList.forEach(listener -> listener.onRequestMessage(agent));
 	}
 
+	/**
+	 * Sends a request for all stored messages exchanged with an agent to the
+	 * database. This should notify :
+	 * <ul>
+	 * <li>DBManager</li>
+	 * </ul>
+	 * 
+	 * @param agent is the agent with which the messages was exchanged
+	 */
 	public void fireRequestAllMessages(Agent agent) {
 		requestMessageListenerList.forEach(listener -> listener.onRequestAllMessages(agent));
 	}

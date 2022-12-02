@@ -32,7 +32,6 @@ import javax.swing.ListCellRenderer;
 
 import clavardaj.controller.ListenerManager;
 import clavardaj.controller.PacketManager;
-import clavardaj.controller.UserManager;
 import clavardaj.controller.listener.LoginListener;
 import clavardaj.model.Agent;
 import clavardaj.model.packet.emit.PacketToEmit;
