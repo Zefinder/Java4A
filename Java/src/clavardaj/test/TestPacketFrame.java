@@ -13,10 +13,13 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -29,6 +32,7 @@ import javax.swing.ListCellRenderer;
 
 import clavardaj.controller.ListenerManager;
 import clavardaj.controller.PacketManager;
+import clavardaj.controller.UserManager;
 import clavardaj.controller.listener.LoginListener;
 import clavardaj.model.Agent;
 import clavardaj.model.packet.emit.PacketToEmit;
@@ -198,6 +202,19 @@ public class TestPacketFrame extends JFrame {
 							parameters.add(LocalDateTime.now());
 							break;
 
+						case "java.util.UUID":
+							parameters.add(UUID.randomUUID());
+							break;
+
+						case "java.net.InetAddress":
+							try {
+								parameters.add(InetAddress.getByName("localhost"));
+							} catch (UnknownHostException e2) {
+								System.out.println("Problème get ip");
+								e2.printStackTrace();
+							}
+							break;
+
 						case "clavardaj.model.Agent":
 							Agent agent = userList.getSelectedValue();
 							if (agent == null) {
@@ -213,16 +230,15 @@ public class TestPacketFrame extends JFrame {
 						default:
 							break;
 						}
-
-						// On utilise le constructeur avec les paramètres
-						try {
-							packet = (PacketToEmit) constructor.newInstance(parameters.toArray());
-						} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-								| InvocationTargetException e1) {
-							e1.printStackTrace();
-						}
 					}
-					break;
+
+					// On utilise le constructeur avec les paramètres
+					try {
+						packet = (PacketToEmit) constructor.newInstance(parameters.toArray());
+					} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+							| InvocationTargetException e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 

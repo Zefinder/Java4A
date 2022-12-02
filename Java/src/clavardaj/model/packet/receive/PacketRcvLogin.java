@@ -2,6 +2,7 @@ package clavardaj.model.packet.receive;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.UUID;
 
 import clavardaj.controller.ListenerManager;
@@ -9,17 +10,20 @@ import clavardaj.model.Agent;
 
 public class PacketRcvLogin implements PacketToReceive {
 
+	private UUID uuid;
+	private InetAddress ip;
 	private String name;
 
 	@Override
 	public void initFromStream(DataInputStream stream) throws IOException {
+		this.uuid = UUID.fromString(stream.readUTF());
+		this.ip = InetAddress.getByName(stream.readUTF());
 		this.name = stream.readUTF();
 	}
 
 	@Override
 	public void processPacket() {
-		UUID uuid = UUID.randomUUID();
-		Agent agent = new Agent(uuid, name);
+		Agent agent = new Agent(uuid, ip, name);
 		ListenerManager.getInstance().fireAgentLogin(agent);
 	}
 

@@ -24,7 +24,7 @@ public class PacketEmtOpenConversation implements PacketToEmit {
 	@Override
 	public void sendPacket(DataOutputStream stream) throws IOException {
 		stream.writeUTF(this.uuid.toString());
-		stream.writeUTF(this.ip.toString());
+		stream.writeUTF(this.ip.getHostAddress());
 		stream.writeInt(this.port);
 		stream.writeUTF(this.name);
 	}

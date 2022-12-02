@@ -10,8 +10,9 @@ public class Agent {
 	private int port;
 	private String name;
 
-	public Agent(UUID uuid, String name) {
+	public Agent(UUID uuid, InetAddress ip, String name) {
 		this.uuid = uuid;
+		this.ip = ip;
 		this.name = name;
 	}
 

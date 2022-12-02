@@ -21,12 +21,18 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import clavardaj.Main;
+import clavardaj.model.packet.emit.PacketEmtCloseConversation;
 import clavardaj.model.packet.emit.PacketEmtLogin;
+import clavardaj.model.packet.emit.PacketEmtLoginChange;
 import clavardaj.model.packet.emit.PacketEmtLogout;
+import clavardaj.model.packet.emit.PacketEmtMessage;
 import clavardaj.model.packet.emit.PacketEmtOpenConversation;
 import clavardaj.model.packet.emit.PacketToEmit;
+import clavardaj.model.packet.receive.PacketRcvCloseConversation;
 import clavardaj.model.packet.receive.PacketRcvLogin;
+import clavardaj.model.packet.receive.PacketRcvLoginChange;
 import clavardaj.model.packet.receive.PacketRcvLogout;
+import clavardaj.model.packet.receive.PacketRcvMessage;
 import clavardaj.model.packet.receive.PacketRcvOpenConversation;
 import clavardaj.model.packet.receive.PacketToReceive;
 
@@ -85,10 +91,16 @@ public class PacketManager implements Runnable {
 		idToPacket.put(0, PacketRcvLogin.class);
 		idToPacket.put(1, PacketRcvLogout.class);
 		idToPacket.put(2, PacketRcvOpenConversation.class);
+		idToPacket.put(3, PacketRcvCloseConversation.class);
+		idToPacket.put(4, PacketRcvMessage.class);
+		idToPacket.put(5, PacketRcvLoginChange.class);
 
 		packetToId.put(PacketEmtLogin.class, 0);
 		packetToId.put(PacketEmtLogout.class, 1);
 		packetToId.put(PacketEmtOpenConversation.class, 2);
+		packetToId.put(PacketEmtCloseConversation.class, 3);
+		packetToId.put(PacketEmtMessage.class, 4);
+		packetToId.put(PacketEmtLoginChange.class, 5);
 
 		new Thread(this).start();
 	}
