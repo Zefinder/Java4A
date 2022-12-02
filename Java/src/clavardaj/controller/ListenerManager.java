@@ -61,7 +61,7 @@ public class ListenerManager {
 
 	public void addRequestMessageListener(RequestMessageListener listener) {
 		requestMessageListenerList.add(listener);
-	}			
+	}
 
 	public void fireAgentLogin(Agent agent) {
 		loginListenerList.forEach(listener -> listener.onAgentLogin(agent));
@@ -87,12 +87,12 @@ public class ListenerManager {
 		loginChangeListenerList.forEach(listener -> listener.onSelfLoginChange(newLogin));
 	}
 
-	public void fireMessageReceived(Agent agent, String message) {
-		messageListenerList.forEach(listener -> listener.onMessageReceived(agent, message));
+	public void fireMessageReceived(Message message) {
+		messageListenerList.forEach(listener -> listener.onMessageReceived(message));
 	}
 
-	public void fireMessageSent(Agent agent, String message) {
-		messageListenerList.forEach(listener -> listener.onMessageSent(agent, message));
+	public void fireMessageSent(Message message) {
+		messageListenerList.forEach(listener -> listener.onMessageSent(message));
 	}
 
 	public void fireMessageToSend(Agent agent, String message) {

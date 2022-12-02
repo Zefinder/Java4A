@@ -10,15 +10,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import clavardaj.controller.listener.LoginListener;
+import clavardaj.controller.listener.MessageListener;
 import clavardaj.model.Agent;
 import clavardaj.model.Message;
 
-public class DBManager {
+public class DBManager implements LoginListener, MessageListener {
 
 	private static final DBManager instance = new DBManager();
 	private Connection connection;
 	private java.sql.Statement statement;
 	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	private UserManager umanager = UserManager.getInstance();
 
 	private DBManager() {
 		// Initialisation de la base de donnée
@@ -38,13 +41,6 @@ public class DBManager {
 		statement = connection.createStatement();
 
 		// Vérification de l'existance des tables (sinon création)
-		// CREATE TABLE `clavardaj`.`user` ( `uuid` VARCHAR(36) NOT NULL , `login`
-		// VARCHAR(20) NOT NULL , `passwd` VARCHAR(32) NULL , PRIMARY KEY (`uuid`(36)));
-		// CREATE TABLE `clavardaj`.`message` ( `userSend` VARCHAR(36) NOT NULL ,
-		// `userRcv` VARCHAR(36) NOT NULL , `date` DATE NOT NULL , `content`
-		// VARCHAR(2048) NOT NULL , PRIMARY KEY (`userSend`, `userRcv`, `date`));
-		// SELECT DISTINCT `TABLE_NAME` FROM `INFORMATION_SCHEMA`. `COLUMNS` WHERE
-		// `table_schema` = 'clavardaj';
 		resultSet = statement.executeQuery(
 				"SELECT DISTINCT `TABLE_NAME` FROM `INFORMATION_SCHEMA`. `COLUMNS` WHERE `table_schema` = 'clavardaj';");
 
@@ -73,6 +69,8 @@ public class DBManager {
 			statement.execute(
 					"CREATE TABLE `clavardaj`.`message` ( `userSend` VARCHAR(36) NOT NULL , `userRcv` VARCHAR(36) NOT NULL , `date` DATETIME NOT NULL , `content` VARCHAR(2048) NOT NULL , PRIMARY KEY (`userSend`, `userRcv`, `date`));");
 		}
+
+		resultSet.close();
 	}
 
 	public void addMessage(Message message) throws SQLException {
@@ -99,12 +97,12 @@ public class DBManager {
 			UUID userSend = UUID.fromString(resultSet.getString("userSend"));
 			UUID userRcv = UUID.fromString(resultSet.getString("userRcv"));
 			LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
-			UserManager umanager = UserManager.getInstance();
 
 			messages.add(
 					new Message(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date));
 		}
 
+		resultSet.close();
 		return messages;
 	}
 
@@ -119,8 +117,8 @@ public class DBManager {
 		UUID userSend = UUID.fromString(resultSet.getString("userSend"));
 		UUID userRcv = UUID.fromString(resultSet.getString("userRcv"));
 		LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
-		UserManager umanager = UserManager.getInstance();
 
+		resultSet.close();
 		return new Message(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date);
 	}
 
@@ -140,10 +138,57 @@ public class DBManager {
 //		out.writeUTF("Coucou!");
 //	}
 
+	@Override
+	public void onAgentLogin(Agent agent) {
+		try {
+			addUser(agent, null);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onAgentLogout(Agent agent) {
+
+	}
+
+	@Override
+	public void onSelfLogin() {
+		try {
+			statement.close();
+			connection.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onSelfLogout() {
+		// TODO Fermer la db
+
+	}
+
+	@Override
+	public void onMessageReceived(Message message) {
+		try {
+			addMessage(message);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onMessageSent(Message message) {
+		try {
+			addMessage(message);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public static void main(String[] args) throws SQLException {
 		DBManager manager = DBManager.instance;
-		UserManager umanager = UserManager.getInstance();
-		
+
 		Agent a = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce842b7a"), "a");
 		Agent b = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce842b8a"), "b");
 		Agent c = new Agent(UUID.fromString("154542c-8643-41cb-a2be-2962ce842b7a"), "c");
@@ -165,4 +210,5 @@ public class DBManager {
 		Message message = manager.requestMessage(a);
 		System.out.println(message.toString());
 	}
+
 }

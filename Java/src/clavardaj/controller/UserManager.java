@@ -54,4 +54,8 @@ public class UserManager implements LoginListener {
 		// TODO Auto-generated method stub
 		
 	}
+
+	public Agent getCurrentAgent() {
+		return currentAgent;
+	}
 }

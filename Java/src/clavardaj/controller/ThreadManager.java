@@ -95,8 +95,8 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 
 	@Override
 	public void onMessageToReceive(Agent agent) {
-		String message = conversations.get(agent).read();
-		ListenerManager.getInstance().fireMessageReceived(agent, message);
+//		String message = conversations.get(agent).read();
+//		ListenerManager.getInstance().fireMessageReceived(message);
 	}
 	
 	public static ThreadManager getInstance() {
