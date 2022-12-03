@@ -150,8 +150,8 @@ public class ListenerManager {
 	 * @param agent   is the distant agent that sent the message
 	 * @param message is the message that has been received
 	 */
-	public void fireMessageReceived(Agent agent, Message message) {
-		messageListenerList.forEach(listener -> listener.onMessageReceived(agent, message));
+	public void fireMessageReceived(Message message) {
+		messageListenerList.forEach(listener -> listener.onMessageReceived(message));
 	}
 
 	/**
@@ -164,8 +164,8 @@ public class ListenerManager {
 	 * @param agent   is the agent that sent a message
 	 * @param message is the sent message
 	 */
-	public void fireMessageSent(Agent agent, String message) {
-		messageListenerList.forEach(listener -> listener.onMessageSent(agent, message));
+	public void fireMessageSent(Message message) {
+		messageListenerList.forEach(listener -> listener.onMessageSent(message));
 	}
 
 	/**

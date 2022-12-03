@@ -153,19 +153,19 @@ public class DBManager implements LoginListener, MessageListener {
 	}
 
 	@Override
-	public void onSelfLogin() {
+	public void onSelfLogin(UUID uuid, String name) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSelfLogout() {
 		try {
 			statement.close();
 			connection.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	}
-
-	@Override
-	public void onSelfLogout() {
-		// TODO Fermer la db
-
 	}
 
 	@Override
@@ -189,11 +189,11 @@ public class DBManager implements LoginListener, MessageListener {
 	public static void main(String[] args) throws SQLException {
 		DBManager manager = DBManager.instance;
 
-		Agent a = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce842b7a"), "a");
-		Agent b = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce842b8a"), "b");
-		Agent c = new Agent(UUID.fromString("154542c-8643-41cb-a2be-2962ce842b7a"), "c");
-		Agent d = new Agent(UUID.fromString("83574f09-3a2b-4778-96ec-3c74c69476cf"), "d");
-		Agent e = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce843b7a"), "e");
+		Agent a = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce842b7a"), null, "a");
+		Agent b = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce842b8a"), null, "b");
+		Agent c = new Agent(UUID.fromString("154542c-8643-41cb-a2be-2962ce842b7a"), null, "c");
+		Agent d = new Agent(UUID.fromString("83574f09-3a2b-4778-96ec-3c74c69476cf"), null, "d");
+		Agent e = new Agent(UUID.fromString("1544080c-8643-41cb-a2be-2962ce843b7a"), null, "e");
 
 		ListenerManager.getInstance().fireAgentLogin(a);
 		ListenerManager.getInstance().fireAgentLogin(b);
