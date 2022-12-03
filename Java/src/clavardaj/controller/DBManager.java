@@ -24,6 +24,9 @@ public class DBManager implements LoginListener, MessageListener {
 	private UserManager umanager = UserManager.getInstance();
 
 	private DBManager() {
+		ListenerManager.getInstance().addLoginListener(this);
+		ListenerManager.getInstance().addMessageListener(this);
+		
 		// Initialisation de la base de donnée
 		try {
 			init();
@@ -122,6 +125,20 @@ public class DBManager implements LoginListener, MessageListener {
 		return new Message(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date);
 	}
 
+	public Agent checkUser(String login, String passwd) throws SQLException {
+		// SELECT * FROM user WHERE login = 'a' AND passwd = 'A';
+
+		ResultSet resultSet = statement.executeQuery(
+				String.format("SELECT `user`.* FROM `user` WHERE login = '%s' AND passwd = '%s';", login, passwd));
+
+		if (resultSet.next()) {
+			UUID uuid = UUID.fromString(resultSet.getString("uuid"));
+			return new Agent(uuid, null, login);
+		}
+
+		return null;
+	}
+
 	public static DBManager getInstance() {
 		return instance;
 	}
@@ -155,7 +172,7 @@ public class DBManager implements LoginListener, MessageListener {
 	@Override
 	public void onSelfLogin(UUID uuid, String name) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override

@@ -6,6 +6,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.sql.SQLException;
+import java.util.UUID;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -15,7 +17,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import clavardaj.controller.DBManager;
 import clavardaj.controller.ListenerManager;
+import clavardaj.model.Agent;
 
 public class MainFrame extends JFrame {
 
@@ -73,11 +77,30 @@ public class MainFrame extends JFrame {
 		c.gridy = 1;
 		JButton confirm = new JButton("Login !");
 		confirm.addActionListener(e -> {
-			
-			JOptionPane.showOptionDialog(this, "I do not wish to be horny anymore !", "Silence wench !",
-					JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE, null, new String[] { "I just want to be happy" },
-					null);
-			ListenerManager.getInstance().fireAgentLogin(null);
+
+			Agent agent = null;
+			try {
+				agent = DBManager.getInstance().checkUser(login.getText(), password.getText());
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			if (agent == null) {
+				int answer = JOptionPane.showOptionDialog(this, "I do not wish to be horny anymore !",
+						"Silence wench !", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null,
+						new String[] { "I just want to be happy", "Create the account !" }, null);
+
+				if (answer == JOptionPane.NO_OPTION) {
+					agent = new Agent(UUID.randomUUID(), null, login.getText());
+					try {
+						DBManager.getInstance().addUser(agent, password.getText());
+					} catch (SQLException e1) {
+						e1.printStackTrace();
+					}
+				} else
+					return;
+			}
+
+			ListenerManager.getInstance().fireSelfLogin(agent.getUuid(), agent.getName());
 		});
 
 		framePanel.add(confirm, c);
@@ -122,6 +145,10 @@ public class MainFrame extends JFrame {
 
 	public void initFrame() {
 		this.setVisible(true);
+	}
+
+	public static void main(String[] args) {
+		new MainFrame().initFrame();
 	}
 
 }

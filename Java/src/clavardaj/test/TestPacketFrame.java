@@ -30,8 +30,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 
+import clavardaj.controller.DBManager;
 import clavardaj.controller.ListenerManager;
 import clavardaj.controller.PacketManager;
+import clavardaj.controller.ThreadManager;
+import clavardaj.controller.UserManager;
 import clavardaj.controller.listener.LoginListener;
 import clavardaj.model.Agent;
 import clavardaj.model.packet.emit.PacketToEmit;
@@ -49,6 +52,13 @@ public class TestPacketFrame extends JFrame {
 	private DataOutputStream out;
 	private PacketManager packetManager = PacketManager.getInstance();
 	private UserFrame uFrame;
+	
+	// Instanciation des managers
+	ThreadManager tmanager = ThreadManager.getInstance();
+	ListenerManager lmanagr = ListenerManager.getInstance();
+	PacketManager pmanager = PacketManager.getInstance();
+	DBManager dmanager = DBManager.getInstance();
+	UserManager umanager = UserManager.getInstance();
 
 	public TestPacketFrame() {
 		this.setTitle("Packet Frame");
