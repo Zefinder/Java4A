@@ -2,6 +2,7 @@ package clavardaj.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import clavardaj.controller.listener.ConversationListener;
 import clavardaj.controller.listener.DatabaseListener;
@@ -94,8 +95,8 @@ public class ListenerManager {
 	 * <li>PacketManager</li>
 	 * </ul>
 	 */
-	public void fireSelfLogin() {
-		loginListenerList.forEach(LoginListener::onSelfLogin);
+	public void fireSelfLogin(UUID uuid, String name) {
+		loginListenerList.forEach(listener -> listener.onSelfLogin(uuid, name));
 	}
 
 	/**
@@ -129,6 +130,7 @@ public class ListenerManager {
 	 * change to other agents. This should notify :
 	 * <ul>
 	 * <li>PacketManager</li>
+	 * <li>DBManager</li>
 	 * </ul>
 	 * 
 	 * @param newLogin is the new login to send to the other agents

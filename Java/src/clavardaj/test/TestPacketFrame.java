@@ -159,8 +159,8 @@ public class TestPacketFrame extends JFrame {
 		}
 
 		@Override
-		public void onSelfLogin() {
-
+		public void onSelfLogin(UUID uuid, String Name) {
+			//  TODO
 		}
 
 		@Override

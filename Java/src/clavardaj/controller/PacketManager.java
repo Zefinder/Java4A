@@ -17,10 +17,13 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import clavardaj.Main;
+import clavardaj.controller.listener.LoginListener;
+import clavardaj.model.Agent;
 import clavardaj.model.packet.emit.PacketEmtCloseConversation;
 import clavardaj.model.packet.emit.PacketEmtLogin;
 import clavardaj.model.packet.emit.PacketEmtLoginChange;
@@ -52,13 +55,16 @@ import clavardaj.model.packet.receive.PacketToReceive;
  * @author Adrien Jakubiak
  *
  */
-public class PacketManager implements Runnable {
+public class PacketManager implements Runnable, LoginListener {
 
 	private static final PacketManager instance = new PacketManager();
 
 	private final Map<Integer, Class<? extends PacketToReceive>> idToPacket = new HashMap<>();
 	private final Map<Class<? extends PacketToEmit>, Integer> packetToId = new HashMap<>();
 
+	// TODO : mettre le socket du packet manager principal en attribut pour faire onSelfLogout
+	// Changements répercutés dans run
+	private List<ServerSocket> distantServerSockets;
 	private List<Socket> distantSockets;
 	private List<InetAddress> localAddresses;
 
@@ -72,6 +78,7 @@ public class PacketManager implements Runnable {
 
 	private PacketManager() {
 		nextAvailablePort = TCP_PORT;
+		distantServerSockets = new ArrayList<>();
 		distantSockets = new ArrayList<>();
 		localAddresses = new ArrayList<>();
 
@@ -134,6 +141,7 @@ public class PacketManager implements Runnable {
 				DataInputStream in = new DataInputStream(socket.getInputStream());
 				// On lance l'écoute de paquets pour TCP
 				new Thread(new PacketThread(in)).start();
+				distantServerSockets.add(newServer);
 				distantSockets.add(socket);
 			}
 		} catch (IOException e) {
@@ -280,6 +288,43 @@ public class PacketManager implements Runnable {
 	public static void main(String[] args) throws IOException {
 		instance.init();
 //		System.out.println(InetAddress.getLocalHost().getHostAddress());
+	}
+
+	@Override
+	public void onAgentLogin(Agent agent) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onAgentLogout(Agent agent) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onSelfLogin(UUID uuid, String name) {
+		init();
+	}
+
+	@Override
+	public void onSelfLogout() {
+		distantSockets.forEach(socket -> {
+			try {
+				socket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+		distantServerSockets.forEach(socket -> {
+			try {
+				socket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
 	}
 
 	private class PacketThread implements Runnable {
