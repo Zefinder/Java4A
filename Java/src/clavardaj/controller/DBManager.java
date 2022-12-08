@@ -26,7 +26,7 @@ public class DBManager implements LoginListener, MessageListener {
 	private DBManager() {
 		ListenerManager.getInstance().addLoginListener(this);
 		ListenerManager.getInstance().addMessageListener(this);
-		
+
 		// Initialisation de la base de donnée
 		try {
 			init();
@@ -166,13 +166,10 @@ public class DBManager implements LoginListener, MessageListener {
 
 	@Override
 	public void onAgentLogout(Agent agent) {
-
 	}
 
 	@Override
 	public void onSelfLogin(UUID uuid, String name) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override

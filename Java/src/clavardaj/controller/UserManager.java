@@ -51,15 +51,12 @@ public class UserManager implements LoginListener, LoginChangeListener {
 		try {
 			this.currentAgent = new Agent(uuid, InetAddress.getLocalHost(), name);
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
 	@Override
 	public void onSelfLogout() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
