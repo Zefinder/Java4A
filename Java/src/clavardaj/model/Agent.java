@@ -7,7 +7,7 @@ public class Agent {
 
 	private UUID uuid;
 	private InetAddress ip;
-	private int port;
+	private int port; // <- local port!!
 	private String name;
 
 	public Agent(UUID uuid, InetAddress ip, String name) {

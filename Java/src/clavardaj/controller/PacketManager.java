@@ -62,9 +62,6 @@ public class PacketManager implements Runnable, LoginListener {
 	private final Map<Integer, Class<? extends PacketToReceive>> idToPacket = new HashMap<>();
 	private final Map<Class<? extends PacketToEmit>, Integer> packetToId = new HashMap<>();
 
-	// TODO : mettre le socket du packet manager principal en attribut pour faire onSelfLogout
-	// Changements répercutés dans run
-	private List<ServerSocket> distantServerSockets;
 	private List<Socket> distantSockets;
 	private List<InetAddress> localAddresses;
 
@@ -76,9 +73,10 @@ public class PacketManager implements Runnable, LoginListener {
 
 	private int nextAvailablePort;
 
+	private Socket activeSocket;
+
 	private PacketManager() {
 		nextAvailablePort = TCP_PORT;
-		distantServerSockets = new ArrayList<>();
 		distantSockets = new ArrayList<>();
 		localAddresses = new ArrayList<>();
 
@@ -115,7 +113,6 @@ public class PacketManager implements Runnable, LoginListener {
 	@Override
 	public void run() {
 		ServerSocket server;
-		ServerSocket newServer;
 		try {
 			// Serveur global de redirection TCP
 
@@ -124,16 +121,23 @@ public class PacketManager implements Runnable, LoginListener {
 			server = new ServerSocket(nextAvailablePort++);
 
 			while (true) {
-				Socket socket = server.accept();
+				activeSocket = server.accept();
 
 				if (Main.DEBUG)
 					System.out.println("[Server]: Client connected... Redirecting to port " + nextAvailablePort + "!");
 
-				new DataOutputStream(socket.getOutputStream()).writeInt(nextAvailablePort);
-				socket.close();
+				new DataOutputStream(activeSocket.getOutputStream()).writeInt(nextAvailablePort);
+				activeSocket.close();
 
-				newServer = new ServerSocket(nextAvailablePort++);
-				socket = newServer.accept();
+				ServerSocket newServer = null;
+				while (newServer == null)
+					try {
+						newServer = new ServerSocket(nextAvailablePort++);
+					} catch (IOException e) {
+						System.err.println("[PacketManager] Port already used for newServer");
+					}
+
+				Socket socket = newServer.accept();
 
 				if (Main.DEBUG)
 					System.out.println("[Server]: Client redirected, ready to transfer packets!");
@@ -141,7 +145,8 @@ public class PacketManager implements Runnable, LoginListener {
 				DataInputStream in = new DataInputStream(socket.getInputStream());
 				// On lance l'écoute de paquets pour TCP
 				new Thread(new PacketThread(in)).start();
-				distantServerSockets.add(newServer);
+
+				newServer.close();
 				distantSockets.add(socket);
 			}
 		} catch (IOException e) {
@@ -285,21 +290,21 @@ public class PacketManager implements Runnable, LoginListener {
 		return null;
 	}
 
-	public static void main(String[] args) throws IOException {
-		instance.init();
-//		System.out.println(InetAddress.getLocalHost().getHostAddress());
-	}
-
 	@Override
 	public void onAgentLogin(Agent agent) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onAgentLogout(Agent agent) {
-		// TODO Auto-generated method stub
 
+		Socket socket = distantSockets.stream().filter(s -> s.getLocalPort() == agent.getPort()).findFirst().get();
+		try {
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		distantSockets.remove(socket);
 	}
 
 	@Override
@@ -309,22 +314,22 @@ public class PacketManager implements Runnable, LoginListener {
 
 	@Override
 	public void onSelfLogout() {
+
+		// préférable de le laisser dans un try/catch à part
+		try {
+			activeSocket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		distantSockets.forEach(socket -> {
 			try {
 				socket.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		});
-		distantServerSockets.forEach(socket -> {
-			try {
-				socket.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
+
 	}
 
 	private class PacketThread implements Runnable {
@@ -362,8 +367,15 @@ public class PacketManager implements Runnable, LoginListener {
 //					packetsToHandle.add(packet);
 				} catch (IOException | InstantiationException | IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException | NoSuchMethodException | SecurityException e) {
-					e.printStackTrace();
+
+					if (e instanceof IOException) {
+						if (Main.DEBUG)
+							System.out.println("[PacketThread] Socket closed");
+					} else
+						e.printStackTrace();
+
 					break;
+
 				}
 		}
 	}
