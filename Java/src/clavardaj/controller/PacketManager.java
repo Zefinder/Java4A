@@ -134,7 +134,7 @@ public class PacketManager implements Runnable, LoginListener {
 
 				newServer = new ServerSocket(nextAvailablePort++);
 				socket = newServer.accept();
-
+				
 				if (Main.DEBUG)
 					System.out.println("[Server]: Client redirected, ready to transfer packets!");
 

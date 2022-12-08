@@ -50,7 +50,6 @@ public class TestPacketFrame extends JFrame {
 	private JList<Agent> userList;
 
 	private DataOutputStream out;
-	private PacketManager packetManager = PacketManager.getInstance();
 	private UserFrame uFrame;
 	
 	// Instanciation des managers
@@ -252,7 +251,7 @@ public class TestPacketFrame extends JFrame {
 			}
 
 			// Et on l'envoie !
-			packetManager.sendPacket(out, packet);
+			pmanager.sendPacket(out, packet);
 		}
 
 	}
