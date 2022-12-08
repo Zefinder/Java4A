@@ -18,12 +18,13 @@ import clavardaj.model.UserThread;
 
 public class ThreadManager implements MessageToTransferListener, ConversationListener {
 
-	Map<Agent, UserThread> conversations = new HashMap<Agent, UserThread>();
+	private Map<Agent, UserThread> conversations;
 	private static final ThreadManager instance = new ThreadManager();
 
 	private ThreadManager() {
 		ListenerManager.getInstance().addConversationListener(this);
 		ListenerManager.getInstance().addMessageToTransferListener(this);
+		this.conversations = new HashMap<Agent, UserThread>();
 	}
 
 	@Override
@@ -81,11 +82,13 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 
 	@Override
 	public void onMessageToSend(Agent agent, String message) {
+		System.out.println("[ThreadManager] Message to send");
 		conversations.get(agent).write(message);
 	}
 
 	@Override
 	public void onMessageToReceive(Agent agent) {
+		System.out.println("[ThreadManager] Message to receive");
 		Message message = conversations.get(agent).read(agent);
 		ListenerManager.getInstance().fireMessageReceived(message);
 	}

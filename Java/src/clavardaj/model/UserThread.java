@@ -38,6 +38,7 @@ public abstract class UserThread {
 		Message message;
 		String content = new String();
 		try {
+			// TODO readline ne lit rien, vérifier que le stream soit le bon
 			content = in.readLine();
 		} catch (IOException e) {
 			e.printStackTrace();

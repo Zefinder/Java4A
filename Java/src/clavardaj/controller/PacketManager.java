@@ -282,6 +282,10 @@ public class PacketManager implements Runnable, LoginListener {
 		}
 	}
 
+	public int getNextAvailablePort() {
+		return nextAvailablePort++;
+	}
+	
 	public static PacketManager getInstance() {
 		return instance;
 	}

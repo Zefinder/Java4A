@@ -30,7 +30,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 
-import clavardaj.controller.DBManager;
 import clavardaj.controller.ListenerManager;
 import clavardaj.controller.PacketManager;
 import clavardaj.controller.ThreadManager;
@@ -46,18 +45,17 @@ public class TestPacketFrame extends JFrame {
 	 */
 	private static final long serialVersionUID = 8193766432160460721L;
 
-	private JTextField field;
+	private JTextField field, messageField;
 	private JList<Agent> userList;
 
 	private DataOutputStream out;
-	private PacketManager packetManager = PacketManager.getInstance();
 	private UserFrame uFrame;
-	
+
 	// Instanciation des managers
 	ThreadManager tmanager = ThreadManager.getInstance();
 	ListenerManager lmanagr = ListenerManager.getInstance();
 	PacketManager pmanager = PacketManager.getInstance();
-	DBManager dmanager = DBManager.getInstance();
+	// DBManager dmanager = DBManager.getInstance();
 	UserManager umanager = UserManager.getInstance();
 
 	public TestPacketFrame() {
@@ -84,6 +82,8 @@ public class TestPacketFrame extends JFrame {
 
 		field = new JTextField(30);
 		panel.add(field, BorderLayout.SOUTH);
+		messageField = new JTextField(30);
+		panel.add(messageField, BorderLayout.SOUTH);
 
 		return panel;
 	}
@@ -170,7 +170,7 @@ public class TestPacketFrame extends JFrame {
 
 		@Override
 		public void onSelfLogin(UUID uuid, String Name) {
-			//  TODO
+			// TODO
 		}
 
 		@Override
@@ -195,6 +195,19 @@ public class TestPacketFrame extends JFrame {
 				e1.printStackTrace();
 			}
 
+			if (buttonName.equals("PacketEmtMessage")) {
+				Agent agent1 = userList.getSelectedValue();
+				if (agent1 == null) {
+					userList.setSelectedIndex(0);
+					agent1 = userList.getSelectedValue();
+					if (agent1 == null) {
+						System.err.println("There must be an agent to select to send this packet...");
+						return;
+					}
+				}
+				ListenerManager.getInstance().fireMessageToSend(agent1, messageField.getText());
+			}
+			
 			// On prend le constructeur qui n'est pas celui hérité par Object et...
 			for (Constructor<?> constructor : packetClass.getConstructors()) {
 				if (constructor.getParameterCount() > 0) {
@@ -252,7 +265,7 @@ public class TestPacketFrame extends JFrame {
 			}
 
 			// Et on l'envoie !
-			packetManager.sendPacket(out, packet);
+			pmanager.sendPacket(out, packet);
 		}
 
 	}
@@ -273,14 +286,14 @@ public class TestPacketFrame extends JFrame {
 		public Component getListCellRendererComponent(JList<? extends Agent> list, Agent displayItem, int index,
 				boolean isSelected, boolean cellHasFocus) {
 
-	        if (isSelected) {
-	            setBackground(list.getSelectionBackground());
-	            setForeground(list.getSelectionForeground());
-	        } else {
-	            setBackground(list.getBackground());
-	            setForeground(list.getForeground());
-	        }
-			
+			if (isSelected) {
+				setBackground(list.getSelectionBackground());
+				setForeground(list.getSelectionForeground());
+			} else {
+				setBackground(list.getBackground());
+				setForeground(list.getForeground());
+			}
+
 			setText(displayItem.toString());
 			return this;
 		}
