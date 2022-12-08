@@ -21,6 +21,7 @@ public class UserManager implements LoginListener, LoginChangeListener {
 		agentList = new ArrayList<>();
 		
 		ListenerManager.getInstance().addLoginListener(this);
+		ListenerManager.getInstance().addLoginChangeListener(this);
 	}
 
 	public static UserManager getInstance() {

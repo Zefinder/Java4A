@@ -8,11 +8,12 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -26,6 +27,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
@@ -45,10 +47,9 @@ public class TestPacketFrame extends JFrame {
 	 */
 	private static final long serialVersionUID = 8193766432160460721L;
 
-	private JTextField field, messageField;
+	private JTextField field;
 	private JList<Agent> userList;
 
-	private DataOutputStream out;
 	private UserFrame uFrame;
 
 	// Instanciation des managers
@@ -82,8 +83,31 @@ public class TestPacketFrame extends JFrame {
 
 		field = new JTextField(30);
 		panel.add(field, BorderLayout.SOUTH);
-		messageField = new JTextField(30);
-		panel.add(messageField, BorderLayout.SOUTH);
+
+//		messageField = new JTextField(30);
+//		panel.add(messageField, BorderLayout.SOUTH);
+
+		JButton connect = new JButton("Connect to distant user");
+		connect.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String ip = JOptionPane.showInputDialog(null, "Entrez l'IP de la machine distante", "Internet !",
+						JOptionPane.INFORMATION_MESSAGE);
+
+				try {
+					System.out.println("Trying to connect to address " + ip);
+					DatagramSocket socket = new DatagramSocket();
+					DatagramPacket packet = new DatagramPacket("1234".getBytes(), 4, InetAddress.getByName(ip), 1233);
+					socket.send(packet);
+					socket.close();
+
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		panel.add(connect, BorderLayout.SOUTH);
 
 		return panel;
 	}
@@ -92,7 +116,7 @@ public class TestPacketFrame extends JFrame {
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(5, 5));
 
-		File packets = new File("src/clavardaj/model/packet/emit");
+		File packets = new File("./src/clavardaj/model/packet/emit");
 		System.out.println(packets.getAbsolutePath());
 		String[] files = packets.list();
 		for (String file : files) {
@@ -105,10 +129,6 @@ public class TestPacketFrame extends JFrame {
 		}
 
 		return panel;
-	}
-
-	public void setOutputStream(DataOutputStream out) {
-		this.out = out;
 	}
 
 	public void showFrame() {
@@ -185,6 +205,12 @@ public class TestPacketFrame extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			String buttonName = ((JButton) e.getSource()).getText();
 
+			Agent agent = userList.getSelectedValue();
+			if (agent == null) {
+				userList.setSelectedIndex(0);
+				agent = userList.getSelectedValue();
+			}
+
 			PacketToEmit packet = null;
 			Class<?> packetClass = null;
 
@@ -205,9 +231,9 @@ public class TestPacketFrame extends JFrame {
 						return;
 					}
 				}
-				ListenerManager.getInstance().fireMessageToSend(agent1, messageField.getText());
+				ListenerManager.getInstance().fireMessageToSend(agent1, field.getText());
 			}
-			
+
 			// On prend le constructeur qui n'est pas celui hérité par Object et...
 			for (Constructor<?> constructor : packetClass.getConstructors()) {
 				if (constructor.getParameterCount() > 0) {
@@ -238,14 +264,9 @@ public class TestPacketFrame extends JFrame {
 							break;
 
 						case "clavardaj.model.Agent":
-							Agent agent = userList.getSelectedValue();
 							if (agent == null) {
-								userList.setSelectedIndex(0);
-								agent = userList.getSelectedValue();
-								if (agent == null) {
-									System.err.println("There must be an agent to select to send this packet...");
-									return;
-								}
+								System.err.println("There must be an agent to select to send this packet...");
+								return;
 							}
 							parameters.add(agent);
 							break;
@@ -264,8 +285,20 @@ public class TestPacketFrame extends JFrame {
 				}
 			}
 
+			// Si jamais le packet n'avait pas d'argument, on l'instancie
+			if (packet == null)
+				try {
+					packet = (PacketToEmit) packetClass.getDeclaredConstructor().newInstance();
+				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+						| InvocationTargetException | NoSuchMethodException | SecurityException e1) {
+					e1.printStackTrace();
+				}
+
 			// Et on l'envoie !
-			pmanager.sendPacket(out, packet);
+			if (agent == null) {
+				agent = umanager.getCurrentAgent();
+			}
+			pmanager.sendPacket(agent.getIp(), packet);
 		}
 
 	}
@@ -297,10 +330,13 @@ public class TestPacketFrame extends JFrame {
 			setText(displayItem.toString());
 			return this;
 		}
+
 	}
 
 	public static void main(String[] args) {
 		TestPacketFrame frame = new TestPacketFrame();
+		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), "Machine A");
+
 		Socket socket;
 		try {
 			socket = new Socket("localhost", 1234);
@@ -310,8 +346,6 @@ public class TestPacketFrame extends JFrame {
 
 			socket.close();
 			socket = new Socket("localhost", newPort);
-
-			frame.setOutputStream(new DataOutputStream(socket.getOutputStream()));
 
 		} catch (IOException e) {
 			e.printStackTrace();

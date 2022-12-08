@@ -1,12 +1,10 @@
 package clavardaj.controller;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import clavardaj.controller.listener.ConversationListener;
 import clavardaj.controller.listener.MessageToTransferListener;
@@ -35,7 +33,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 
 			ServerSocket serverSocket = new ServerSocket(localPort);
 			Socket socket = serverSocket.accept();
-
+			
 			System.out.println("[Serveur] connexion acceptée");
 
 			UserThread thread = new ServerThread(socket, serverSocket);
@@ -51,7 +49,11 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 
 	@Override
 	public void onConversationClosing(Agent agent) {
-		conversations.get(agent).close();
+		try {
+			conversations.get(agent).close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -61,7 +63,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 			System.out.println("[Client] connexion au port " + agent.getPort());
 
 			Socket socket = new Socket(agent.getIp().getHostAddress(), agent.getPort());
-
+			
 			System.out.println("[Client] connecté");
 
 			UserThread thread = new ClientThread(socket);
@@ -77,7 +79,11 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 
 	@Override
 	public void onConversationClosed(Agent agent) {
-		conversations.get(agent).close();
+		try {
+			conversations.get(agent).close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -89,7 +95,12 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 	@Override
 	public void onMessageToReceive(Agent agent) {
 		System.out.println("[ThreadManager] Message to receive");
-		Message message = conversations.get(agent).read(agent);
+		UserThread userThread = conversations.get(agent);
+		if (userThread instanceof ServerThread)
+			return;
+		
+		Message message = userThread.read(agent);
+		System.out.println(message);
 		ListenerManager.getInstance().fireMessageReceived(message);
 	}
 
@@ -97,7 +108,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 		return instance;
 	}
 
-	public static void main(String[] args) throws IOException {
+//	public static void main(String[] args) throws IOException {
 //		InetAddress ip = InetAddress.getLocalHost();
 //		Agent agent2 = new Agent(1, ip, 1743);
 //		System.out.println("[Manager] création thread");
@@ -106,12 +117,12 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 //		System.out.println("[Manager] envoi message");
 //		ListenerManager.getInstance().fireMessageToSend(agent2, "Coucou bebou");
 
-		InetAddress ip = InetAddress.getLocalHost();
-		Agent agent1 = new Agent(UUID.randomUUID(), ip, 1742, "Bébou");
-		System.out.println("[Manager] création thread");
-		ListenerManager.getInstance().fireConversationOpened(agent1);
-		System.out.println("[Manager] thread créés");
-		ListenerManager.getInstance().fireMessageToReceive(agent1);
-	}
+//		InetAddress ip = InetAddress.getLocalHost();
+//		Agent agent1 = new Agent(UUID.randomUUID(), ip, 1742, "Bébou");
+//		System.out.println("[Manager] création thread");
+//		ListenerManager.getInstance().fireConversationOpened(agent1);
+//		System.out.println("[Manager] thread créés");
+//		ListenerManager.getInstance().fireMessageToReceive(agent1);
+//	}
 
 }

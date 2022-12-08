@@ -55,14 +55,14 @@ import clavardaj.model.packet.receive.PacketToReceive;
  * @author Adrien Jakubiak
  *
  */
-public class PacketManager implements Runnable, LoginListener {
+public class PacketManager implements LoginListener {
 
 	private static final PacketManager instance = new PacketManager();
 
-	private final Map<Integer, Class<? extends PacketToReceive>> idToPacket = new HashMap<>();
-	private final Map<Class<? extends PacketToEmit>, Integer> packetToId = new HashMap<>();
+	private final Map<Integer, Class<? extends PacketToReceive>> idToPacket;
+	private final Map<Class<? extends PacketToEmit>, Integer> packetToId;
+	private final Map<InetAddress, Socket> ipToSocket;
 
-	private List<Socket> distantSockets;
 	private List<InetAddress> localAddresses;
 
 	private DatagramSocket server;
@@ -77,8 +77,11 @@ public class PacketManager implements Runnable, LoginListener {
 
 	private PacketManager() {
 		nextAvailablePort = TCP_PORT;
-		distantSockets = new ArrayList<>();
 		localAddresses = new ArrayList<>();
+
+		idToPacket = new HashMap<>();
+		packetToId = new HashMap<>();
+		ipToSocket = new HashMap<>();
 
 		// On récupère toutes les adresses correspondantes à cette machine
 		try {
@@ -107,148 +110,20 @@ public class PacketManager implements Runnable, LoginListener {
 		packetToId.put(PacketEmtMessage.class, 4);
 		packetToId.put(PacketEmtLoginChange.class, 5);
 
-		new Thread(this).start();
-	}
+		// On lance le thread d'écoute TCP
+		new Thread(new TCPServerThread()).start();
 
-	@Override
-	public void run() {
-		ServerSocket server;
-		try {
-			// Serveur global de redirection TCP
-
-			if (Main.DEBUG)
-				System.out.println("[Server]: TCP door opened!");
-			server = new ServerSocket(nextAvailablePort++);
-
-			while (true) {
-				activeSocket = server.accept();
-
-				if (Main.DEBUG)
-					System.out.println("[Server]: Client connected... Redirecting to port " + nextAvailablePort + "!");
-
-				new DataOutputStream(activeSocket.getOutputStream()).writeInt(nextAvailablePort);
-				activeSocket.close();
-
-				ServerSocket newServer = null;
-				while (newServer == null)
-					try {
-						newServer = new ServerSocket(nextAvailablePort++);
-					} catch (IOException e) {
-						System.err.println("[PacketManager] Port already used for newServer");
-					}
-
-				Socket socket = newServer.accept();
-
-				if (Main.DEBUG)
-					System.out.println("[Server]: Client redirected, ready to transfer packets!");
-
-				DataInputStream in = new DataInputStream(socket.getInputStream());
-				// On lance l'écoute de paquets pour TCP
-				new Thread(new PacketThread(in)).start();
-
-				newServer.close();
-				distantSockets.add(socket);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
+		// On lance le thread d'écoute UDP
+		new Thread(new UDPServerThread()).start();
 	}
 
 	public void init() {
-		try {
-			server = new DatagramSocket(UDP_PORT);
-		} catch (SocketException e) {
-			e.printStackTrace();
-		}
-
 		// On dit à tout le monde qu'on est prêts !
 		try {
 			broadcastLogin();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		// Lancer le thread d'attente de connexion
-		new Thread(new Runnable() {
-			private byte[] buf = new byte[5];
-
-			@Override
-			public void run() {
-				// TODO: Vérifier que l'UDP de connexion ne vient pas d'une connexion déjà
-				// présente
-
-				while (true) {
-					// On prend le paquet UDP
-					DatagramPacket packet = new DatagramPacket(buf, buf.length);
-					try {
-						server.receive(packet);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-
-					// On dissèque le paquet
-					InetAddress address = packet.getAddress();
-					int port = packet.getPort();
-
-					if (Main.DEBUG)
-						System.out.println("[Server]: UDP Packet received from address " + address.getHostAddress());
-
-					// On regarde si le paquet ne vient pas de nous...
-					boolean local = false;
-					for (InetAddress localAddress : localAddresses)
-						if (address.equals(localAddress)) {
-							local = true;
-							if (Main.DEBUG)
-								System.err.println("[Server]: UDP Packet was from us!");
-						}
-
-					if (local)
-						continue;
-
-					// Sinon on continue
-					packet = new DatagramPacket(buf, buf.length, address, port);
-
-					String sDistantPort = new String(packet.getData(), 0, packet.getLength()).trim();
-
-					int distantPort;
-					try {
-						distantPort = Integer.valueOf(sDistantPort);
-					} catch (NumberFormatException e) {
-						System.err.println("[Server]: Packet received not for our application!");
-						continue;
-					}
-
-					if (Main.DEBUG)
-						System.out.println("[Server]: New connection detected... TCP connection to port " + distantPort
-								+ " on distant host...");
-
-					// On ouvre une connexion TCP entre les deux PacketManager. On se fera
-					// rediriger...
-					try {
-						Socket client = new Socket(address, distantPort);
-						DataInputStream in = new DataInputStream(client.getInputStream());
-
-						int newPort = in.readInt();
-
-						if (Main.DEBUG) {
-							System.out.println("[Server]: Connected to TCP door...");
-							System.out.println("[Server]: Redirected to port " + newPort + " on distant host!");
-						}
-						client.close();
-						client = new Socket(address, newPort);
-
-						in = new DataInputStream(client.getInputStream());
-						// On lance l'écoute de paquets pour TCP
-						new Thread(new PacketThread(in)).start();
-						distantSockets.add(client);
-
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}).start();
 	}
 
 	private void broadcastLogin() throws IOException {
@@ -260,7 +135,7 @@ public class PacketManager implements Runnable, LoginListener {
 			System.out.println("[Server]: Broadcasting packet for connexion...");
 
 		byte[] buf;
-		buf = "1234".getBytes();
+		buf = String.format("%d", TCP_PORT).getBytes();
 
 		DatagramSocket socket = new DatagramSocket();
 		socket.setBroadcast(true);
@@ -270,8 +145,9 @@ public class PacketManager implements Runnable, LoginListener {
 		socket.close();
 	}
 
-	public void sendPacket(DataOutputStream outputStream, PacketToEmit packet) {
+	public void sendPacket(InetAddress ip, PacketToEmit packet) {
 		try {
+			DataOutputStream outputStream = new DataOutputStream(ipToSocket.get(ip).getOutputStream());
 			outputStream.writeInt(packetToId.get(packet.getClass()));
 			packet.sendPacket(outputStream);
 
@@ -285,7 +161,7 @@ public class PacketManager implements Runnable, LoginListener {
 	public int getNextAvailablePort() {
 		return nextAvailablePort++;
 	}
-	
+
 	public static PacketManager getInstance() {
 		return instance;
 	}
@@ -301,19 +177,19 @@ public class PacketManager implements Runnable, LoginListener {
 	@Override
 	public void onAgentLogout(Agent agent) {
 
-		Socket socket = distantSockets.stream().filter(s -> s.getLocalPort() == agent.getPort()).findFirst().get();
+		Socket socket = ipToSocket.get(agent.getIp());
 		try {
 			socket.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		distantSockets.remove(socket);
+		ipToSocket.remove(agent.getIp());
 	}
 
 	@Override
 	public void onSelfLogin(UUID uuid, String name) {
-		init();
+		// init();
 	}
 
 	@Override
@@ -326,14 +202,162 @@ public class PacketManager implements Runnable, LoginListener {
 			e.printStackTrace();
 		}
 
-		distantSockets.forEach(socket -> {
+		ipToSocket.forEach((t, u) -> {
 			try {
-				socket.close();
+				u.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		});
+	}
 
+	private class TCPServerThread implements Runnable {
+
+		@Override
+		public void run() {
+			ServerSocket server;
+			try {
+				// Serveur global de redirection TCP
+
+				if (Main.DEBUG)
+					System.out.println("[Server]: TCP door opened!");
+				server = new ServerSocket(nextAvailablePort++);
+
+				while (true) {
+					activeSocket = server.accept();
+
+					if (Main.DEBUG)
+						System.out.println(
+								"[Server]: Client connected... Redirecting to port " + nextAvailablePort + "!");
+
+					new DataOutputStream(activeSocket.getOutputStream()).writeInt(nextAvailablePort);
+					activeSocket.close();
+
+					ServerSocket newServer = null;
+					while (newServer == null)
+						try {
+							newServer = new ServerSocket(nextAvailablePort++);
+						} catch (IOException e) {
+							System.err.println("[PacketManager] Port already used for newServer");
+						}
+
+					Socket socket = newServer.accept();
+
+					if (Main.DEBUG)
+						System.out.println("[Server]: Client redirected, ready to transfer packets!");
+
+					DataInputStream in = new DataInputStream(socket.getInputStream());
+
+					// On lance l'écoute de paquets pour TCP
+					new Thread(new PacketThread(in)).start();
+					newServer.close();
+					
+					// On envoie un login packet à la machine distante avec notre nom !
+					if (socket.getInetAddress().toString().equals("/127.0.0.1"))
+						for (InetAddress ip : localAddresses)
+							ipToSocket.put(ip, socket);
+
+					ipToSocket.put(socket.getInetAddress(), socket);
+
+					Agent agent = UserManager.getInstance().getCurrentAgent();
+					sendPacket(socket.getInetAddress(), new PacketEmtLogin(agent.getUuid(), socket.getLocalAddress(), agent.getName()));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
+
+	private class UDPServerThread implements Runnable {
+		private byte[] buf = new byte[5];
+
+		@Override
+		public void run() {
+			// TODO: Vérifier que l'UDP de connexion ne vient pas d'une connexion déjà
+			// présente
+
+			try {
+				server = new DatagramSocket(UDP_PORT);
+			} catch (SocketException e1) {
+				e1.printStackTrace();
+			}
+
+			while (true) {
+				// On prend le paquet UDP
+				DatagramPacket packet = new DatagramPacket(buf, buf.length);
+				try {
+					server.receive(packet);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				// On dissèque le paquet
+				InetAddress address = packet.getAddress();
+				int port = packet.getPort();
+
+				if (Main.DEBUG)
+					System.out.println("[Server]: UDP Packet received from address " + address.getHostAddress());
+
+				// On regarde si le paquet ne vient pas de nous...
+				boolean local = false;
+				for (InetAddress localAddress : localAddresses)
+					if (address.equals(localAddress)) {
+						local = true;
+						if (Main.DEBUG)
+							System.err.println("[Server]: UDP Packet was from us!");
+					}
+
+				if (local)
+					continue;
+
+				// Sinon on continue
+				packet = new DatagramPacket(buf, buf.length, address, port);
+
+				String sDistantPort = new String(packet.getData(), 0, packet.getLength()).trim();
+
+				int distantPort;
+				try {
+					distantPort = Integer.valueOf(sDistantPort);
+				} catch (NumberFormatException e) {
+					System.err.println("[Server]: Packet received not for our application!");
+					continue;
+				}
+
+				if (Main.DEBUG)
+					System.out.println("[Server]: New connection detected... TCP connection to port " + distantPort
+							+ " on distant host...");
+
+				// On ouvre une connexion TCP entre les deux PacketManager. On se fera
+				// rediriger...
+				try {
+					Socket client = new Socket(address, distantPort);
+					DataInputStream in = new DataInputStream(client.getInputStream());
+
+					int newPort = in.readInt();
+
+					if (Main.DEBUG) {
+						System.out.println("[Server]: Connected to TCP door...");
+						System.out.println("[Server]: Redirected to port " + newPort + " on distant host!");
+					}
+					client.close();
+					client = new Socket(address, newPort);
+
+					in = new DataInputStream(client.getInputStream());
+
+					// On lance l'écoute de paquets pour TCP
+					new Thread(new PacketThread(in)).start();
+
+					ipToSocket.put(client.getInetAddress(), client);
+
+					// On envoie un login packet à la machine distante avec notre nom !
+					Agent agent = UserManager.getInstance().getCurrentAgent();
+					sendPacket(client.getInetAddress(), new PacketEmtLogin(agent.getUuid(), agent.getIp(), agent.getName()));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	private class PacketThread implements Runnable {
@@ -363,11 +387,10 @@ public class PacketManager implements Runnable, LoginListener {
 			while (true)
 				try {
 					int idPacket = inputStream.readInt();
-					if (Main.DEBUG)
-						System.out.println("[Server]: Packet " + idPacket + " received !");
 
 					PacketToReceive packet = readPacket(idPacket);
 					packet.processPacket();
+					// TODO Ne pas process packet tout de suite mais le faire dans un thread à part !
 //					packetsToHandle.add(packet);
 				} catch (IOException | InstantiationException | IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -375,6 +398,8 @@ public class PacketManager implements Runnable, LoginListener {
 					if (e instanceof IOException) {
 						if (Main.DEBUG)
 							System.out.println("[PacketThread] Socket closed");
+						
+//						ListenerManager.getInstance().fireAgentLogout();
 					} else
 						e.printStackTrace();
 
