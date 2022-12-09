@@ -1,5 +1,8 @@
 package clavardaj.frame;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -62,6 +65,13 @@ public class MainFrame extends JFrame {
 		panel.add(Box.createVerticalGlue());
 		return panel;
 		
+	}
+	
+	private JPanel buildContactContextPanel() {
+		JPanel panel = new JPanel();
+		
+		
+		return panel;
 	}
 	
 	public void showFrame() {
