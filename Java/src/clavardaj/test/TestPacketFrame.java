@@ -30,6 +30,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 
+import com.mysql.cj.jdbc.ConnectionGroupManager;
+
 import clavardaj.controller.DBManager;
 import clavardaj.controller.ListenerManager;
 import clavardaj.controller.PacketManager;
@@ -56,7 +58,7 @@ public class TestPacketFrame extends JFrame {
 	ThreadManager tmanager = ThreadManager.getInstance();
 	ListenerManager lmanagr = ListenerManager.getInstance();
 	PacketManager pmanager = PacketManager.getInstance();
-	DBManager dmanager = DBManager.getInstance();
+//	DBManager dmanager = DBManager.getInstance();
 	UserManager umanager = UserManager.getInstance();
 
 	public TestPacketFrame() {
@@ -286,6 +288,7 @@ public class TestPacketFrame extends JFrame {
 	}
 
 	public static void main(String[] args) {
+		PacketManager.getInstance().init();
 		TestPacketFrame frame = new TestPacketFrame();
 		Socket socket;
 		try {

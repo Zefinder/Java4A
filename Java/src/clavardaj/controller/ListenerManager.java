@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import clavardaj.controller.listener.ConversationChangeListener;
 import clavardaj.controller.listener.ConversationListener;
 import clavardaj.controller.listener.DatabaseListener;
 import clavardaj.controller.listener.LoginChangeListener;
@@ -25,6 +26,7 @@ public class ListenerManager {
 	private List<DatabaseListener> databaseListenerList;
 	private List<MessageToTransferListener> messageToTransferListenerList;
 	private List<RequestMessageListener> requestMessageListenerList;
+	private List<ConversationChangeListener> conversationChangeListenerList;
 
 	private ListenerManager() {
 		loginListenerList = new ArrayList<>();
@@ -34,6 +36,7 @@ public class ListenerManager {
 		databaseListenerList = new ArrayList<>();
 		messageToTransferListenerList = new ArrayList<>();
 		requestMessageListenerList = new ArrayList<>();
+		conversationChangeListenerList = new ArrayList<>();
 	}
 
 	public void addLoginListener(LoginListener listener) {
@@ -62,6 +65,10 @@ public class ListenerManager {
 
 	public void addRequestMessageListener(RequestMessageListener listener) {
 		requestMessageListenerList.add(listener);
+	}
+	
+	public void addConversationChangeListener(ConversationChangeListener listener) {
+		conversationChangeListenerList.add(listener);
 	}
 
 	/**
@@ -283,6 +290,10 @@ public class ListenerManager {
 	 */
 	public void fireRequestAllMessages(Agent agent) {
 		requestMessageListenerList.forEach(listener -> listener.onRequestAllMessages(agent));
+	}
+	
+	public void fireContactSelection(UUID uuid) {
+		conversationChangeListenerList.forEach(listener -> listener.onContactSelection(uuid));
 	}
 
 	public static ListenerManager getInstance() {
