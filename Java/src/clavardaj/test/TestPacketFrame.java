@@ -95,7 +95,6 @@ public class TestPacketFrame extends JFrame {
 						JOptionPane.INFORMATION_MESSAGE);
 
 				try {
-					System.out.println("Trying to connect to address " + ip);
 					DatagramSocket socket = new DatagramSocket();
 					DatagramPacket packet = new DatagramPacket("1234".getBytes(), 4, InetAddress.getByName(ip), 1233);
 					socket.send(packet);
@@ -195,7 +194,7 @@ public class TestPacketFrame extends JFrame {
 
 		@Override
 		public void onSelfLogout() {
-
+			model.removeAllElements();
 		}
 	}
 

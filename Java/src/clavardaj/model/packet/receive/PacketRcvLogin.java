@@ -29,7 +29,7 @@ public class PacketRcvLogin implements PacketToReceive {
 
 	@Override
 	public String toString() {
-		return String.format("[PacketRcvLogin]: uuid = %s, name = %s, ip = %s", uuid, name, ip.getHostAddress());
+		return String.format("PacketRcvLogin[uuid=%s,name=%s,ip=%s]", uuid, name, ip.getHostAddress());
 	}
 
 }

@@ -26,6 +26,6 @@ public class PacketEmtLogin implements PacketToEmit {
 
 	@Override
 	public String toString() {
-		return String.format("[PacketEmtLogin]: uuid = %s, name = %s, ip = %s", uuid, name, ip.getHostAddress());
+		return String.format("PacketEmtLogin[uuid=%s,name=%s,ip=%s]", uuid, name, ip.getHostAddress());
 	}
 }

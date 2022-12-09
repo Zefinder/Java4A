@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
+import clavardaj.controller.UserManager;
 import clavardaj.model.Agent;
 
 public class PacketEmtLoginChange implements PacketToEmit {
@@ -11,8 +12,8 @@ public class PacketEmtLoginChange implements PacketToEmit {
 	private UUID uuid;
 	private String newName;
 
-	public PacketEmtLoginChange(Agent sender, String newName) {
-		this.uuid = sender.getUuid();
+	public PacketEmtLoginChange(String newName) {
+		this.uuid = UserManager.getInstance().getCurrentAgent().getUuid();
 		this.newName = newName;
 	}
 
@@ -24,7 +25,7 @@ public class PacketEmtLoginChange implements PacketToEmit {
 
 	@Override
 	public String toString() {
-		return String.format("[PacketEmtLoginChange]: uuid = %s, new namee = %s", uuid, newName);
+		return String.format("PacketEmtLoginChange[uuid=%s, new name=%s]", uuid, newName);
 	}
 
 }

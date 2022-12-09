@@ -26,7 +26,7 @@ public class PacketRcvCloseConversation implements PacketToReceive {
 	
 	@Override
 	public String toString() {
-		return "[PacketRcvCloseConversation]: uuid = " + uuid.toString();
+		return "PacketRcvCloseConversation[uuid=" + uuid.toString() + "]";
 	}
 
 }

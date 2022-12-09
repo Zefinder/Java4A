@@ -25,6 +25,6 @@ public class PacketRcvMessage implements PacketToReceive {
 
 	@Override
 	public String toString() {
-		return "[PacketRcvMessage]: uuid = " + uuid.toString();
+		return "PacketRcvMessage[uuid=" + uuid.toString() + "]";
 	}
 }

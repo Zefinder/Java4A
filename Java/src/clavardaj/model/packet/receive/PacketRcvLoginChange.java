@@ -27,6 +27,6 @@ public class PacketRcvLoginChange implements PacketToReceive {
 
 	@Override
 	public String toString() {
-		return String.format("[PacketRcvLoginChange]: uuid = %s, new namee = %s", uuid, newName);
+		return String.format("PacketRcvLoginChange[uuid=%s,new name=%s]", uuid, newName);
 	}
 }

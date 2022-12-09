@@ -28,7 +28,7 @@ public class PacketRcvOpenConversation implements PacketToReceive {
 
 	@Override
 	public String toString() {
-		return String.format("[PacketRcvOpenConversation]: uuid = %s, port = %d", uuid.toString(), port);
+		return String.format("PacketRcvOpenConversation[uuid=%s,port=%d]", uuid.toString(), port);
 	}
 	
 }

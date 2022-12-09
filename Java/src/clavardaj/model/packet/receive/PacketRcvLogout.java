@@ -25,7 +25,7 @@ public class PacketRcvLogout implements PacketToReceive {
 	
 	@Override
 	public String toString() {
-		return "[PacketRcvLogout]: uuid = " + uuid.toString();
+		return "PacketRcvLogout[uuid=" + uuid.toString() + "]";
 	}
 
 }

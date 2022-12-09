@@ -22,6 +22,6 @@ public class PacketEmtMessage implements PacketToEmit {
 
 	@Override
 	public String toString() {
-		return "[PacketEmtMessage]: uuid = " + uuid.toString();
+		return "PacketEmtMessage[uuid=" + uuid.toString() + "]";
 	}
 }

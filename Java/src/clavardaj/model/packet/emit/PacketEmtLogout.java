@@ -10,8 +10,8 @@ public class PacketEmtLogout implements PacketToEmit {
 
 	private UUID uuid;
 
-	public PacketEmtLogout(UUID uuid) {
-		this.uuid = uuid;
+	public PacketEmtLogout() {
+		this.uuid = UserManager.getInstance().getCurrentAgent().getUuid();
 	}
 
 	@Override
@@ -21,6 +21,6 @@ public class PacketEmtLogout implements PacketToEmit {
 
 	@Override
 	public String toString() {
-		return "[PacketEmtLogout]: uuid = " + uuid.toString();
+		return "PacketEmtLogout[uuid=" + uuid.toString() + "]";
 	}
 }

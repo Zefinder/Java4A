@@ -38,7 +38,7 @@ public class PacketEmtOpenConversation implements PacketToEmit {
 	
 	@Override
 	public String toString() {
-		return String.format("[PacketEmtOpenConversation]: uuid = %s, port = %d", uuid.toString(), port);
+		return String.format("PacketEmtOpenConversation[uuid=%s,port=%d]", uuid.toString(), port);
 	}
 
 }
