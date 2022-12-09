@@ -34,7 +34,11 @@ public class PacketEmtOpenConversation implements PacketToEmit {
 	public void sendPacket(DataOutputStream stream) throws IOException {
 		stream.writeUTF(this.uuid.toString());
 		stream.writeInt(this.port);
-
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("[PacketEmtOpenConversation]: uuid = %s, port = %d", uuid.toString(), port);
 	}
 
 }

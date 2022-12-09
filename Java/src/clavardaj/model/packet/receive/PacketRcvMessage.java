@@ -23,4 +23,8 @@ public class PacketRcvMessage implements PacketToReceive {
 		ListenerManager.getInstance().fireMessageToReceive(sender);
 	}
 
+	@Override
+	public String toString() {
+		return "[PacketRcvMessage]: uuid = " + uuid.toString();
+	}
 }

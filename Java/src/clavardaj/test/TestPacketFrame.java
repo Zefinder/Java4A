@@ -77,15 +77,11 @@ public class TestPacketFrame extends JFrame {
 
 	private JPanel buildPanel() {
 		JPanel panel = new JPanel();
-
 		JPanel buttonsPanel = buildButtonsPanel();
 		panel.add(buttonsPanel, BorderLayout.CENTER);
 
 		field = new JTextField(30);
 		panel.add(field, BorderLayout.SOUTH);
-
-//		messageField = new JTextField(30);
-//		panel.add(messageField, BorderLayout.SOUTH);
 
 		JButton connect = new JButton("Connect to distant user");
 		connect.addActionListener(new ActionListener() {
@@ -335,7 +331,7 @@ public class TestPacketFrame extends JFrame {
 
 	public static void main(String[] args) {
 		TestPacketFrame frame = new TestPacketFrame();
-		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), "Machine A");
+		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), "Zefinder");
 
 		Socket socket;
 		try {

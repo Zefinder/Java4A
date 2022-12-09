@@ -36,6 +36,14 @@ public class UserManager implements LoginListener, LoginChangeListener {
 		return null;
 	}
 	
+	public Agent getAgentByIP(InetAddress ip) {
+		for (Agent agent : agentList) {
+			if (agent.getIp().equals(ip))
+				return agent;
+		}
+		return null;
+	}
+	
 	@Override
 	public void onAgentLogin(Agent agent) {
 		if (!agentList.contains(agent))

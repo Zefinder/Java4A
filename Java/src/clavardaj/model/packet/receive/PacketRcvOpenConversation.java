@@ -26,4 +26,9 @@ public class PacketRcvOpenConversation implements PacketToReceive {
 		ListenerManager.getInstance().fireConversationOpened(distAgent);
 	}
 
+	@Override
+	public String toString() {
+		return String.format("[PacketRcvOpenConversation]: uuid = %s, port = %d", uuid.toString(), port);
+	}
+	
 }

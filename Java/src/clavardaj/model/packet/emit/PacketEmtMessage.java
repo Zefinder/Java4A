@@ -20,4 +20,8 @@ public class PacketEmtMessage implements PacketToEmit {
 		stream.writeUTF(this.uuid.toString());
 	}
 
+	@Override
+	public String toString() {
+		return "[PacketEmtMessage]: uuid = " + uuid.toString();
+	}
 }
