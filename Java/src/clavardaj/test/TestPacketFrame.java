@@ -201,6 +201,7 @@ public class TestPacketFrame extends JFrame {
 
 	private class ButtonListener implements ActionListener {
 
+		@SuppressWarnings("deprecation")
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String buttonName = ((JButton) e.getSource()).getText();
