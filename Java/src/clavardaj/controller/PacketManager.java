@@ -40,19 +40,49 @@ import clavardaj.model.packet.receive.PacketRcvOpenConversation;
 import clavardaj.model.packet.receive.PacketToReceive;
 
 /**
+ * <p>
+ * Manager used to send packets to the distant agents' {@link PacketManager}, to
+ * receive TCP connections and UDP packets from other agents.
+ * </p>
  * 
- * Deux scénarios :<br/>
+ * <p>
+ * This manager's strategy for connection is pretty simple :
  * <ul>
- * <li>On se login et on envoie un paquet UDP avec le numéro de port de la porte
- * TCP. On reçoit une réponse TCP et on redirige vers un nouveau port disponible
- * ! On enregistre ensuite la socket et on lance l'écoute de packet
- * 
- * <li>On était déjà login et on reçoit un paquet UDP. On crée donc une
- * connection vers la porte TCP (port contenu dans le message). On reçoit
- * ensuite un numéro de port libre pour la connection TCP continue
+ * <li>A UDP packet is received containing a TCP port to connect to on the
+ * distant agent.</li>
+ * <li>A TCP connection is established where a server port is negotiated. This
+ * is done to get a privileged communication non connected to other sockets so
+ * we do not mix packets.</li>
+ * <li>Once the 2nd TCP connection is established, a {@link PacketEmtLogin} is
+ * sent to give this {@link Agent}'s UUID and current login. In the meantime, we
+ * receive a {@link PacketEmtLogin} with the distant agent's UUID and name.</li>
  * </ul>
+ * </p>
+ * 
+ * <p>
+ * For each established connection between two {@link PacketManager}, a
+ * {@link PacketThread} is created to receive packets.
+ * </p>
+ * 
+ * <p>
+ * This manager is implemented as a singleton, to access it, use the
+ * {@link #getInstance()} method.
+ * </p>
+ *
+ * @see #getInstance()
+ * @see PacketThread
+ * @see TCPServerThread
+ * @see UDPServerThread
+ * @see PacketToEmit
+ * @see PacketToReceive
+ * @see ThreadManager
+ * @see UserManager
+ * @see DBManager
+ * @see ListenerManager
  * 
  * @author Adrien Jakubiak
+ * 
+ * @since 1.0.0
  *
  */
 public class PacketManager implements LoginListener {
@@ -67,9 +97,16 @@ public class PacketManager implements LoginListener {
 	private List<InetAddress> broadcastAddresses;
 
 	private DatagramSocket UDPserver;
-	public static final BlockingQueue<PacketToReceive> packetsToHandle = new LinkedBlockingQueue<>();
+	private static final BlockingQueue<PacketToReceive> packetsToHandle = new LinkedBlockingQueue<>();
 
+	/**
+	 * UDP listening DatagramSocket port
+	 */
 	private final int UDP_PORT = 1233;
+
+	/**
+	 * TCP listening ServerSocket port
+	 */
 	private final int TCP_PORT = 1234;
 
 	private ServerSocket TCPserver;
@@ -122,7 +159,7 @@ public class PacketManager implements LoginListener {
 
 		// On lance le process de paquets
 		new Thread(new ProcessPacketThread(), "Packet processing").start();
-		
+
 		try {
 			broadcastLogin();
 		} catch (IOException e) {
@@ -147,10 +184,48 @@ public class PacketManager implements LoginListener {
 			DatagramPacket packet = new DatagramPacket(buf, buf.length, broadcastAddress, UDP_PORT);
 			socket.send(packet);
 		}
-		
+
 		socket.close();
 	}
 
+	/**
+	 * Send a packet to another agent using the specified
+	 * {@linkplain DataOutputStream}.
+	 * 
+	 * @deprecated As the other manager do not know the output stream but the IP
+	 *             address of a distant agent, this function isn't useful anymore.
+	 *             It's likely recommended to use the new other
+	 *             {@link #sendPacket(InetAddress, PacketToEmit)}, using the IP
+	 *             address.
+	 * 
+	 * @param outputStream the stream to send the packet on
+	 * @param packet       the packet to send to the distant agent
+	 * 
+	 * @see PacketToEmit
+	 * @see #sendPacket(InetAddress, PacketToEmit)
+	 */
+	@Deprecated
+	public void sendPacket(DataOutputStream outputStream, PacketToEmit packet) {
+		try {
+			outputStream.writeInt(packetToId.get(packet.getClass()));
+			packet.sendPacket(outputStream);
+
+			if (Main.DEBUG)
+				System.out.println("[Server]: Packet sent: " + packet);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Sends the packet to the agent specified by its IP address.
+	 * 
+	 * @param ip     the distant agent's ip to send the packet to
+	 * @param packet the packet to send to the distant agent
+	 * 
+	 * @see Agent
+	 * @see PacketToEmit
+	 */
 	public void sendPacket(InetAddress ip, PacketToEmit packet) {
 		try {
 			DataOutputStream outputStream = new DataOutputStream(ipToSocket.get(ip).getOutputStream());
@@ -164,16 +239,24 @@ public class PacketManager implements LoginListener {
 		}
 	}
 
+	/**
+	 * Get the next available port to connect a socket on
+	 * 
+	 * @return the next available port before incrementing it
+	 */
 	public int getNextAvailablePort() {
 		return nextAvailablePort++;
 	}
 
+	/**
+	 * Get the instance of the manager
+	 * 
+	 * @return the manager's instance
+	 * 
+	 * @see PacketManager
+	 */
 	public static PacketManager getInstance() {
 		return instance;
-	}
-
-	public DataOutputStream getLocalPipe() {
-		return null;
 	}
 
 	@Override
@@ -218,6 +301,27 @@ public class PacketManager implements LoginListener {
 		});
 	}
 
+	/**
+	 * <p>
+	 * This represents the TCP server waiting for connections. For each connection
+	 * to {@link PacketManager#TCP_PORT} it will :
+	 * <ul>
+	 * <li>Send a new port on which it'll be possible to connect on</li>
+	 * <li>Wait for the new connection</li>
+	 * <li>Launch a {@link PacketThread} with the socket's
+	 * {@link DataInputStream}</li>
+	 * <li>Associate the IP address with the socket</li>
+	 * <li>Send a {@link PacketEmtLogin} with this agent UUID and name</li>
+	 * </ul>
+	 * </p>
+	 * 
+	 * @see UDPServerThread
+	 * @see PacketThread
+	 * @see PacketManager
+	 * 
+	 * @author Adrien Jakubiak
+	 *
+	 */
 	private class TCPServerThread implements Runnable {
 
 		@Override
@@ -253,7 +357,6 @@ public class PacketManager implements LoginListener {
 						System.out.println("[Server]: Client redirected, ready to transfer packets!");
 
 					DataInputStream in = new DataInputStream(socket.getInputStream());
-					System.out.println(in.readUTF());
 
 					// On lance l'écoute de paquets pour TCP
 					new Thread(new PacketThread(in), "Packet read").start();
@@ -277,6 +380,30 @@ public class PacketManager implements LoginListener {
 		}
 	}
 
+	/**
+	 * <p>
+	 * This represents the UDP server waiting for UDP packets. For each packet to
+	 * {@link PacketManager#UDP_PORT} it will :
+	 * <ul>
+	 * <li>Read the packet and verify that the packet is not from us nor from an
+	 * already known user</li>
+	 * <li>Connect via TCP to the specified port and get the new port to connect
+	 * on</li>
+	 * <li>Connect via TCP to the new received port</li>
+	 * <li>Launch a {@link PacketThread} with the socket's
+	 * {@link DataInputStream}</li>
+	 * <li>Associate the IP address with the socket</li>
+	 * <li>Send a {@link PacketEmtLogin} with this agent UUID and name</li>
+	 * </ul>
+	 * </p>
+	 * 
+	 * @author Adrien Jakubiak
+	 * 
+	 * @see TCPServerThread
+	 * @see PacketThread
+	 * @see PacketManager
+	 *
+	 */
 	private class UDPServerThread implements Runnable {
 		private byte[] buf = new byte[5];
 
@@ -319,7 +446,7 @@ public class PacketManager implements LoginListener {
 						if (address.equals(connected)) {
 							cancel = true;
 							if (Main.DEBUG)
-								System.err.println("[Server]: UDP Packet was from us!");
+								System.err.println("[Server]: UDP Packet was from an already known agent!");
 						}
 
 				if (cancel)
@@ -358,8 +485,6 @@ public class PacketManager implements LoginListener {
 					client = new Socket(address, newPort);
 
 					in = new DataInputStream(client.getInputStream());
-					DataOutputStream out = new DataOutputStream(client.getOutputStream());
-					out.writeUTF("YOO");
 
 					// On lance l'écoute de paquets pour TCP
 					new Thread(new PacketThread(in), "Packet read").start();
@@ -377,6 +502,27 @@ public class PacketManager implements LoginListener {
 		}
 	}
 
+	/**
+	 * <p>
+	 * This thread will wait for a {@link PacketToReceive} in order to read it and
+	 * process it later. This {@link DataInputStream} is linked to the
+	 * {@link DataOutputStream} of the distant agent, sending the packet via
+	 * {@link PacketManager#sendPacket(InetAddress, PacketToEmit)}
+	 * </p>
+	 * 
+	 * <p>
+	 * Once the packet is receive and initialized, it's put in a
+	 * {@link BlockingQueue} in order to get processed. This allows this thread to
+	 * process all packets he needs to receive.
+	 * </p>
+	 * 
+	 * @author Adrien Jakubiak
+	 * 
+	 * @see PacketManager
+	 * @see TCPServerThread
+	 * @see UDPServerThread
+	 * @see ProcessPacketThread
+	 */
 	private class PacketThread implements Runnable {
 
 		private DataInputStream inputStream;
@@ -406,7 +552,6 @@ public class PacketManager implements LoginListener {
 					int idPacket = inputStream.readInt();
 
 					PacketToReceive packet = readPacket(idPacket);
-					packet.processPacket();
 					packetsToHandle.add(packet);
 				} catch (IOException | InstantiationException | IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException | NoSuchMethodException | SecurityException e) {
@@ -435,19 +580,24 @@ public class PacketManager implements LoginListener {
 		}
 	}
 
+	/**
+	 * This thread processes {@link PacketToReceive} that are in the blocking queue.
+	 * 
+	 * @author Adrien Jakubiak
+	 */
 	private class ProcessPacketThread implements Runnable {
 
 		@Override
 		public void run() {
-			PacketToReceive packet = null; 
+			PacketToReceive packet = null;
 
 			while (true) {
 				try {
 					packet = packetsToHandle.take();
+					packet.processPacket();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				packet.processPacket();
 			}
 		}
 

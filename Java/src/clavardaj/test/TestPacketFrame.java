@@ -8,6 +8,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -49,6 +50,8 @@ public class TestPacketFrame extends JFrame {
 
 	private JTextField field;
 	private JList<Agent> userList;
+
+	private DataOutputStream out;
 
 	private UserFrame uFrame;
 
@@ -176,6 +179,7 @@ public class TestPacketFrame extends JFrame {
 
 		@Override
 		public void onAgentLogin(Agent agent) {
+			model.removeElement(agent);
 			model.addElement(agent);
 		}
 
@@ -185,7 +189,7 @@ public class TestPacketFrame extends JFrame {
 		}
 
 		@Override
-		public void onSelfLogin(UUID uuid, String Name) {
+		public void onSelfLogin(UUID uuid, String name) {
 			// TODO
 		}
 
@@ -247,7 +251,11 @@ public class TestPacketFrame extends JFrame {
 							break;
 
 						case "java.util.UUID":
-							parameters.add(UUID.randomUUID());
+							if (agent == null) {
+								parameters.add(UUID.randomUUID());
+								break;
+							}
+							parameters.add(agent.getUuid());
 							break;
 
 						case "java.net.InetAddress":
@@ -294,7 +302,15 @@ public class TestPacketFrame extends JFrame {
 			if (agent == null) {
 				agent = umanager.getCurrentAgent();
 			}
-			pmanager.sendPacket(agent.getIp(), packet);
+
+			try {
+				if (agent.getIp().equals(InetAddress.getLocalHost()) || agent.getIp().equals(InetAddress.getLoopbackAddress()))
+					pmanager.sendPacket(out, packet);
+				else
+					pmanager.sendPacket(agent.getIp(), packet);
+			} catch (UnknownHostException e1) {
+				e1.printStackTrace();
+			}
 		}
 
 	}
@@ -343,6 +359,7 @@ public class TestPacketFrame extends JFrame {
 			socket.close();
 			socket = new Socket("localhost", newPort);
 
+			frame.out = new DataOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
