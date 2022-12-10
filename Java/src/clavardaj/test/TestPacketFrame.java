@@ -37,6 +37,7 @@ import clavardaj.controller.ListenerManager;
 import clavardaj.controller.PacketManager;
 import clavardaj.controller.ThreadManager;
 import clavardaj.controller.UserManager;
+import clavardaj.controller.listener.LoginChangeListener;
 import clavardaj.controller.listener.LoginListener;
 import clavardaj.model.Agent;
 import clavardaj.model.packet.emit.PacketToEmit;
@@ -134,7 +135,7 @@ public class TestPacketFrame extends JFrame {
 		uFrame.showFrame();
 	}
 
-	private class UserFrame extends JFrame implements LoginListener {
+	private class UserFrame extends JFrame implements LoginListener, LoginChangeListener {
 
 		/**
 		 * 
@@ -195,6 +196,17 @@ public class TestPacketFrame extends JFrame {
 		@Override
 		public void onSelfLogout() {
 			model.removeAllElements();
+		}
+
+		@Override
+		public void onAgentLoginChange(Agent agent, String newLogin) {
+			model.removeElement(agent);
+			model.addElement(agent);
+		}
+
+		@Override
+		public void onSelfLoginChange(String newLogin) {
+			
 		}
 	}
 

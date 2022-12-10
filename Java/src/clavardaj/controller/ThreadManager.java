@@ -14,6 +14,30 @@ import clavardaj.model.Message;
 import clavardaj.model.ServerThread;
 import clavardaj.model.UserThread;
 
+/**
+ * <p>
+ * Manager used to create and manage conversation between this agent and a
+ * distant agent.
+ * </p>
+ * 
+ * <p>
+ * This manager is implemented as a singleton, to access it, use the
+ * {@link #getInstance()} method.
+ * </p>
+ * 
+ * @see #getInstance()
+ * @see Agent
+ * @see UserThread
+ * @see PacketManager
+ * @see UserManager
+ * @see DBManager
+ * @see ListenerManager
+ * 
+ * @author NicolasRigal
+ * 
+ * @since 1.0.0
+ *
+ */
 public class ThreadManager implements MessageToTransferListener, ConversationListener {
 
 	private Map<Agent, UserThread> conversations;
@@ -33,7 +57,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 
 			ServerSocket serverSocket = new ServerSocket(localPort);
 			Socket socket = serverSocket.accept();
-			
+
 			System.out.println("[Serveur] connexion acceptée");
 
 			UserThread thread = new ServerThread(socket, serverSocket);
@@ -63,7 +87,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 			System.out.println("[Client] connexion au port " + agent.getPort());
 
 			Socket socket = new Socket(agent.getIp().getHostAddress(), agent.getPort());
-			
+
 			System.out.println("[Client] connecté");
 
 			UserThread thread = new ClientThread(socket);
@@ -98,31 +122,20 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 		UserThread userThread = conversations.get(agent);
 		if (userThread instanceof ServerThread)
 			return;
-		
+
 		Message message = userThread.read(agent);
 		System.out.println(message);
 		ListenerManager.getInstance().fireMessageReceived(message);
 	}
 
+	/**
+	 * Get the instance of the manager
+	 * 
+	 * @return the manager's instance
+	 * 
+	 * @see ThreadManager
+	 */
 	public static ThreadManager getInstance() {
 		return instance;
 	}
-
-//	public static void main(String[] args) throws IOException {
-//		InetAddress ip = InetAddress.getLocalHost();
-//		Agent agent2 = new Agent(1, ip, 1743);
-//		System.out.println("[Manager] création thread");
-//		ListenerManager.getInstance().fireConversationOpening(agent2, 1742);
-//		System.out.println("[Manager] thread créés");
-//		System.out.println("[Manager] envoi message");
-//		ListenerManager.getInstance().fireMessageToSend(agent2, "Coucou bebou");
-
-//		InetAddress ip = InetAddress.getLocalHost();
-//		Agent agent1 = new Agent(UUID.randomUUID(), ip, 1742, "Bébou");
-//		System.out.println("[Manager] création thread");
-//		ListenerManager.getInstance().fireConversationOpened(agent1);
-//		System.out.println("[Manager] thread créés");
-//		ListenerManager.getInstance().fireMessageToReceive(agent1);
-//	}
-
 }

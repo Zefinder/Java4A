@@ -14,6 +14,37 @@ import clavardaj.controller.listener.RequestMessageListener;
 import clavardaj.model.Agent;
 import clavardaj.model.Message;
 
+/**
+ * <p>
+ * Manager used to send messages through Listeners. It allows more flexibility
+ * to the code making it easier to modify and to add new functionalities in the
+ * future.
+ * </p>
+ * 
+ * <p>
+ * Allowing a class to receive events from this manager is easy:
+ * <ul>
+ * <li>The class must implement a listener</li>
+ * <li>The class must register itself to the ListenerManager</li>
+ * </ul>
+ * </p>
+ * 
+ * <p>
+ * This manager is implemented as a singleton, to access it, use the
+ * {@link #getInstance()} method.
+ * </p>
+ * 
+ * @author Nicolas Rigal
+ *
+ * @see #getInstance()
+ * @see ThreadManager
+ * @see UserManager
+ * @see DBManager
+ * @see PacketManager
+ * 
+ * @since 1.0.0
+ * 
+ */
 public class ListenerManager {
 
 	private static final ListenerManager instance = new ListenerManager();
@@ -285,6 +316,13 @@ public class ListenerManager {
 		requestMessageListenerList.forEach(listener -> listener.onRequestAllMessages(agent));
 	}
 
+	/**
+	 * Get the instance of the manager
+	 * 
+	 * @return the manager's instance
+	 * 
+	 * @see ListenerManager
+	 */
 	public static ListenerManager getInstance() {
 		return instance;
 	}

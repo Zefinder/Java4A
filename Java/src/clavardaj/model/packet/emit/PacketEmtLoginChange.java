@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.UUID;
 
 import clavardaj.controller.UserManager;
-import clavardaj.model.Agent;
 
 public class PacketEmtLoginChange implements PacketToEmit {
 
