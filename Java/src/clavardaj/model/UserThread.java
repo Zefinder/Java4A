@@ -29,25 +29,38 @@ public abstract class UserThread {
 		}
 	}
 
-	public Message read(Agent sender) {
-		Message message;
+	public Message read(Agent sender, boolean isFile) {
+		Message message = null;
 		String content = "";
+		String fileName = "";
 		try {
-			content = in.readUTF();
+			if (isFile) {
+				fileName = in.readUTF();
+				content = in.readUTF();
+				message = new FileMessage(fileName, content, sender, UserManager.getInstance().getCurrentAgent(),
+						LocalDateTime.now());
+			} else {
+				content = in.readUTF();
+				message = new TextMessage(content, sender, UserManager.getInstance().getCurrentAgent(),
+						LocalDateTime.now());
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		message = new Message(content, sender, UserManager.getInstance().getCurrentAgent(), LocalDateTime.now());
-
 		return message;
 	}
 
-	public void write(String message) {
+	public void write(Message message) {
 		try {
-			out.writeUTF(message);
+			if (message instanceof FileMessage)
+				out.writeUTF(((FileMessage) message).getFileName());
+
+			out.writeUTF(message.getContent());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		System.out.println(message);
 	}
 
 	public void close() throws IOException {

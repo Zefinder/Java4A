@@ -209,7 +209,7 @@ public class ListenerManager {
 	 * @param agent   is the agent that sent a message
 	 * @param message is the message to send
 	 */
-	public void fireMessageToSend(Agent agent, String message) {
+	public void fireMessageToSend(Agent agent, Message message) {
 		messageToTransferListenerList.forEach(listener -> listener.onMessageToSend(agent, message));
 	}
 
@@ -221,9 +221,10 @@ public class ListenerManager {
 	 * </ul>
 	 * 
 	 * @param agent is the agent that sent a message
+	 * @param isFile 
 	 */
-	public void fireMessageToReceive(Agent agent) {
-		messageToTransferListenerList.forEach(listener -> listener.onMessageToReceive(agent));
+	public void fireMessageToReceive(Agent agent, boolean isFile) {
+		messageToTransferListenerList.forEach(listener -> listener.onMessageToReceive(agent, isFile));
 	}
 
 	/**

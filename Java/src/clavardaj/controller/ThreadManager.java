@@ -111,19 +111,17 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 	}
 
 	@Override
-	public void onMessageToSend(Agent agent, String message) {
+	public void onMessageToSend(Agent agent, Message message) {
 		System.out.println("[ThreadManager] Message to send");
 		conversations.get(agent).write(message);
 	}
 
 	@Override
-	public void onMessageToReceive(Agent agent) {
+	public void onMessageToReceive(Agent agent, boolean isFile) {
 		System.out.println("[ThreadManager] Message to receive");
 		UserThread userThread = conversations.get(agent);
-		if (userThread instanceof ServerThread)
-			return;
 
-		Message message = userThread.read(agent);
+		Message message = userThread.read(agent, isFile);
 		System.out.println(message);
 		ListenerManager.getInstance().fireMessageReceived(message);
 	}

@@ -14,6 +14,7 @@ import clavardaj.controller.listener.LoginListener;
 import clavardaj.controller.listener.MessageListener;
 import clavardaj.model.Agent;
 import clavardaj.model.Message;
+import clavardaj.model.TextMessage;
 
 /**
  * <p>
@@ -153,7 +154,7 @@ public class DBManager implements LoginListener, MessageListener {
 			LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
 
 			messages.add(
-					new Message(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date));
+					new TextMessage(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date));
 		}
 
 		resultSet.close();
@@ -180,7 +181,7 @@ public class DBManager implements LoginListener, MessageListener {
 		LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
 
 		resultSet.close();
-		return new Message(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date);
+		return new TextMessage(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date);
 	}
 
 	/**

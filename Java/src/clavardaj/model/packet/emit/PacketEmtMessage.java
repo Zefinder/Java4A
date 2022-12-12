@@ -9,19 +9,22 @@ import clavardaj.controller.UserManager;
 public class PacketEmtMessage implements PacketToEmit {
 
 	private UUID uuid;
+	private boolean isFile;
 
-	public PacketEmtMessage() {
-		// On n'envoie pas l'UUID de celui à qui on doit envoyer mais sa propre UUID ! 
+	public PacketEmtMessage(boolean isFile) {
+		// On n'envoie pas l'UUID de celui à qui on doit envoyer mais sa propre UUID !
 		this.uuid = UserManager.getInstance().getCurrentAgent().getUuid();
+		this.isFile = isFile;
 	}
 
 	@Override
 	public void sendPacket(DataOutputStream stream) throws IOException {
 		stream.writeUTF(this.uuid.toString());
+		stream.writeBoolean(isFile);
 	}
 
 	@Override
 	public String toString() {
-		return "PacketEmtMessage[uuid=" + uuid.toString() + "]";
+		return String.format("PacketEmtMessage[uuid=%s,isFile=%b]", uuid.toString(), isFile);
 	}
 }
