@@ -1,6 +1,5 @@
 package clavardaj.controller;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -35,7 +34,7 @@ import clavardaj.model.UserThread;
  * @see DBManager
  * @see ListenerManager
  * 
- * @author NicolasRigal
+ * @author Nicolas Rigal
  * 
  * @since 1.0.0
  *
@@ -49,7 +48,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 		ListenerManager.getInstance().addConversationListener(this);
 		ListenerManager.getInstance().addMessageToTransferListener(this);
 		this.conversations = new HashMap<Agent, UserThread>();
-		
+
 		if (!Main.OUTPUT.exists())
 			Main.OUTPUT.mkdir();
 	}
@@ -127,7 +126,6 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 		UserThread userThread = conversations.get(agent);
 
 		Message message = userThread.read(agent, isFile);
-//		System.out.println(message);		
 		ListenerManager.getInstance().fireMessageReceived(message);
 	}
 

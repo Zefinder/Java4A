@@ -76,8 +76,6 @@ public abstract class UserThread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		System.out.println(message);
 	}
 
 	public void close() throws IOException {

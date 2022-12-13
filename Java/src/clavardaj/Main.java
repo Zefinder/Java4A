@@ -9,7 +9,7 @@ import clavardaj.frame.MainFrame;
 public class Main {
 	
 	public static final boolean DEBUG = true;
-	public static final File OUTPUT = new File("/output");
+	public static final File OUTPUT = new File("./output");
 	
 	public static void main(String[] args) {
 		MainFrame frame = new MainFrame();
