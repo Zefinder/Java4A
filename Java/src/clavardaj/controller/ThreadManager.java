@@ -1,11 +1,13 @@
 package clavardaj.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import clavardaj.Main;
 import clavardaj.controller.listener.ConversationListener;
 import clavardaj.controller.listener.MessageToTransferListener;
 import clavardaj.model.Agent;
@@ -47,6 +49,9 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 		ListenerManager.getInstance().addConversationListener(this);
 		ListenerManager.getInstance().addMessageToTransferListener(this);
 		this.conversations = new HashMap<Agent, UserThread>();
+		
+		if (!Main.OUTPUT.exists())
+			Main.OUTPUT.mkdir();
 	}
 
 	@Override
@@ -122,7 +127,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 		UserThread userThread = conversations.get(agent);
 
 		Message message = userThread.read(agent, isFile);
-		System.out.println(message);
+//		System.out.println(message);		
 		ListenerManager.getInstance().fireMessageReceived(message);
 	}
 
