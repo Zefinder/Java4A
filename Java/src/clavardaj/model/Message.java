@@ -1,8 +1,8 @@
 package clavardaj.model;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -37,10 +37,7 @@ public abstract class Message {
 	}
 
 	private static String parseFile(File file) throws IOException {
-		FileInputStream stream = new FileInputStream(file);
-		String content = new String(stream.readAllBytes());
-		stream.close();
-		
+		String content = new String(Files.readAllBytes(file.toPath()));
 		return content;
 	}
 	
