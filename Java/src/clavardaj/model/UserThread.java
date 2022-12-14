@@ -34,30 +34,31 @@ public abstract class UserThread {
 
 	public Message read(Agent sender, boolean isFile) {
 		Message message = null;
-		String content = "";
 		String fileName = "";
 		try {
 			if (isFile) {
 				fileName = in.readUTF();
-				content = in.readUTF();
+				int len = in.readInt();
+				System.out.println(len);
+				byte[] content = in.readNBytes(len);
 				message = new FileMessage(fileName, content, sender, UserManager.getInstance().getCurrentAgent(),
 						LocalDateTime.now());
 
 				// TODO Le mettre dans la frame au clic
 				// Stratégie : le stocker dans un dossier temporaire et au moment de
 				// l'enregistrement : déplacement et renommage !
-				File file = new File(Main.OUTPUT.getAbsolutePath() + File.pathSeparator + fileName);
+				File file = new File(Main.OUTPUT.getAbsolutePath() + File.separator + fileName);
 				// TODO Si le nom du fichier existe déjà c'est un problème. Hasher le nom et
 				// trouver un moyen pour le retrouver !
 				file.createNewFile();
 
 				// On remplit le fichier
 				FileOutputStream stream = new FileOutputStream(file);
-				stream.write(content.getBytes());
+				stream.write(content);
 				stream.close();
-				
+
 			} else {
-				content = in.readUTF();
+				String content = in.readUTF();
 				message = new TextMessage(content, sender, UserManager.getInstance().getCurrentAgent(),
 						LocalDateTime.now());
 			}
@@ -69,10 +70,13 @@ public abstract class UserThread {
 
 	public void write(Message message) {
 		try {
-			if (message instanceof FileMessage)
+			if (message instanceof FileMessage) {
 				out.writeUTF(((FileMessage) message).getFileName());
-
-			out.writeUTF(message.getContent());
+				byte[] content = message.getContent();
+				out.writeInt(content.length);
+				out.write(content);
+			} else
+				out.writeUTF(((TextMessage) message).getStringContent());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
