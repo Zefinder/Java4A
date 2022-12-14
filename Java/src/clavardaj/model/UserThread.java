@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 import clavardaj.Main;
 import clavardaj.controller.UserManager;
@@ -21,6 +22,10 @@ public abstract class UserThread {
 	private Socket socket;
 	private DataInputStream in;
 	private DataOutputStream out;
+
+	// En réalité le buffer de la socket fait 64ko mais on réduit de moitié pour ne
+	// pas surcharger la socket !
+	private final int chunkSize = 0x8000;
 
 	public UserThread(Socket socket) {
 		this.socket = socket;
@@ -39,8 +44,9 @@ public abstract class UserThread {
 			if (isFile) {
 				fileName = in.readUTF();
 				int len = in.readInt();
+				byte[] content;
 				System.out.println(len);
-				byte[] content = in.readNBytes(len);
+				content = readFile(len);
 				message = new FileMessage(fileName, content, sender, UserManager.getInstance().getCurrentAgent(),
 						LocalDateTime.now());
 
@@ -71,15 +77,36 @@ public abstract class UserThread {
 	public void write(Message message) {
 		try {
 			if (message instanceof FileMessage) {
-				out.writeUTF(((FileMessage) message).getFileName());
-				byte[] content = message.getContent();
-				out.writeInt(content.length);
-				out.write(content);
+				writeFile((FileMessage) message);
 			} else
 				out.writeUTF(((TextMessage) message).getStringContent());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void writeFile(FileMessage message) throws IOException {
+		out.writeUTF(((FileMessage) message).getFileName());
+		byte[] content = message.getContent();
+		out.writeInt(content.length);
+
+		for (int i = 0; i < content.length; i += chunkSize) {
+			out.write(Arrays.copyOfRange(content, i, Math.min(content.length, i + chunkSize)));
+			out.flush();
+		}
+	}
+
+	private byte[] readFile(int len) throws IOException {
+		byte[] content = new byte[len];
+		byte[] buffer = new byte[chunkSize];
+
+		int index = 0;
+		for (int size = len; len > 0; len -= chunkSize) {
+			in.read(buffer, 0, Math.min(chunkSize, size));
+			System.arraycopy(buffer, 0, buffer, chunkSize * index, Math.min(chunkSize, size));
+			index++;
+		}
+		return content;
 	}
 
 	public void close() throws IOException {
