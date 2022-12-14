@@ -227,12 +227,12 @@ public class TestPacketFrame extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String buttonName = ((JButton) e.getSource()).getText();
-
 			Agent agent = userList.getSelectedValue();
 			if (agent == null) {
 				userList.setSelectedIndex(0);
 				agent = userList.getSelectedValue();
 			}
+			Message message = null;
 
 			PacketToEmit packet = null;
 			Class<?> packetClass = null;
@@ -245,26 +245,24 @@ public class TestPacketFrame extends JFrame {
 			}
 
 			if (buttonName.equals("PacketEmtMessage")) {
-				Message message = null;
 				if (field.isEnabled())
 					message = new TextMessage(field.getText(), umanager.getCurrentAgent(), agent, LocalDateTime.now());
 				else {
 					JFileChooser chooser = new JFileChooser();
-				    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+					chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
 					int answer = chooser.showOpenDialog(null);
 					if (answer == JFileChooser.APPROVE_OPTION) {
 						File file = chooser.getSelectedFile();
 						try {
-							message = Message.createFileMessage(file, UserManager.getInstance().getCurrentAgent(), agent);
+							message = Message.createFileMessage(file, UserManager.getInstance().getCurrentAgent(),
+									agent);
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
 					} else
 						return;
 				}
-
-				ListenerManager.getInstance().fireMessageToSend(agent, message);
 			}
 
 			// On prend le constructeur qui n'est pas celui hérité par Object et...
@@ -278,7 +276,7 @@ public class TestPacketFrame extends JFrame {
 						case "boolean":
 							parameters.add(sendFile.isSelected());
 							break;
-							
+
 						case "java.lang.String":
 							parameters.add(field.getText());
 							break;
@@ -349,6 +347,11 @@ public class TestPacketFrame extends JFrame {
 			} catch (UnknownHostException e1) {
 				e1.printStackTrace();
 			}
+
+			if (buttonName.equals("PacketEmtMessage")) {
+				ListenerManager.getInstance().fireMessageToSend(agent, message);
+			}
+
 		}
 
 	}

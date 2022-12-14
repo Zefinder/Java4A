@@ -91,7 +91,8 @@ public abstract class UserThread {
 		out.writeInt(content.length);
 
 		for (int i = 0; i < content.length; i += chunkSize) {
-			out.write(Arrays.copyOfRange(content, i, Math.min(content.length, i + chunkSize)));
+			byte[] buffer = Arrays.copyOfRange(content, i, Math.min(content.length, i + chunkSize));
+			out.write(buffer);
 			out.flush();
 		}
 	}
@@ -101,9 +102,9 @@ public abstract class UserThread {
 		byte[] buffer = new byte[chunkSize];
 
 		int index = 0;
-		for (int size = len; len > 0; len -= chunkSize) {
+		for (int size = len; size > 0; size -= chunkSize) {
 			in.read(buffer, 0, Math.min(chunkSize, size));
-			System.arraycopy(buffer, 0, buffer, chunkSize * index, Math.min(chunkSize, size));
+			System.arraycopy(buffer, 0, content, chunkSize * index, Math.min(chunkSize, size));
 			index++;
 		}
 		return content;
