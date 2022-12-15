@@ -37,7 +37,7 @@ public abstract class UserThread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		message = new Message(content, sender, UserManager.getInstance().getCurrentAgent(), LocalDateTime.now());
+		message = new Message(content, sender.getUuid(), UserManager.getInstance().getCurrentAgent().getUuid(), LocalDateTime.now());
 
 		return message;
 	}

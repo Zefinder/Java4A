@@ -114,7 +114,7 @@ public class DBManager implements LoginListener, MessageListener {
 	private void addMessage(Message message) throws SQLException {
 		statement.execute(String.format(
 				"INSERT INTO `message` (`userSend`, `userRcv`, `date`, `content`) VALUES ('%s', '%s', '%s', '%s');",
-				message.getSender().getUuid(), message.getReceiver().getUuid(), message.getDate().format(formatter),
+				message.getUuidSender(), message.getUuidReceiver(), message.getDate().format(formatter),
 				message.getContent()));
 	}
 
@@ -152,8 +152,7 @@ public class DBManager implements LoginListener, MessageListener {
 			UUID userRcv = UUID.fromString(resultSet.getString("userRcv"));
 			LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
 
-			messages.add(
-					new Message(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date));
+			messages.add(new Message(content, userSend, userRcv, date));
 		}
 
 		resultSet.close();
@@ -180,13 +179,13 @@ public class DBManager implements LoginListener, MessageListener {
 		LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
 
 		resultSet.close();
-		return new Message(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date);
+		return new Message(content, userSend, userRcv, date);
 	}
 
 	/**
 	 * Check if the login and password match to any line of the user table.
 	 * 
-	 * @param login the agent's login
+	 * @param login  the agent's login
 	 * @param passwd the agent's password
 	 * @return the agent that matches (or null if none matches)
 	 * @throws SQLException

@@ -1,18 +1,19 @@
 package clavardaj.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Message {
 
 	private String content;
-	private Agent sender;
-	private Agent receiver;
+	private UUID uuidSender;
+	private UUID uuidReceiver;
 	private LocalDateTime date;
 
-	public Message(String content, Agent sender, Agent receiver, LocalDateTime date) {
+	public Message(String content, UUID uuidSender, UUID uuidReceiver, LocalDateTime date) {
 		this.content = content;
-		this.sender = sender;
-		this.receiver = receiver;
+		this.uuidSender = uuidSender;
+		this.uuidReceiver = uuidReceiver;
 		this.date = date;
 	}
 	
@@ -20,21 +21,21 @@ public class Message {
 		return content;
 	}
 
-	public Agent getSender() {
-		return sender;
+	public UUID getUuidSender() {
+		return uuidSender;
 	}
 
 	public LocalDateTime getDate() {
 		return date;
 	}
 
-	public Agent getReceiver() {
-		return receiver;
+	public UUID getUuidReceiver() {
+		return uuidReceiver;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("[%s] %s -> %s : %s", date.toString(), sender.toString(), receiver.toString(), content);
+		return String.format("[%s] %s -> %s : %s", date.toString(), uuidSender.toString(), uuidReceiver.toString(), content);
 	}
 
 }
