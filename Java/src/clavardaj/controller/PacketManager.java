@@ -114,6 +114,8 @@ public class PacketManager implements LoginListener {
 	private int nextAvailablePort;
 
 	private PacketManager() {
+		ListenerManager.getInstance().addLoginListener(this);
+		
 		nextAvailablePort = TCP_PORT;
 		localAddresses = new ArrayList<>();
 		broadcastAddresses = new ArrayList<>();
@@ -151,6 +153,9 @@ public class PacketManager implements LoginListener {
 		packetToId.put(PacketEmtMessage.class, 4);
 		packetToId.put(PacketEmtLoginChange.class, 5);
 
+	}
+
+	private void initThreads() {
 		// On lance le thread d'écoute TCP
 		new Thread(new TCPServerThread(), "TCP Server").start();
 
@@ -165,6 +170,7 @@ public class PacketManager implements LoginListener {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
 	}
 
 	private void broadcastLogin() throws IOException {
@@ -278,7 +284,7 @@ public class PacketManager implements LoginListener {
 
 	@Override
 	public void onSelfLogin(UUID uuid, String name) {
-		// init();
+		initThreads();
 	}
 
 	@Override

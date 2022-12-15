@@ -25,6 +25,8 @@ import java.util.UUID;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -40,7 +42,11 @@ import clavardaj.controller.UserManager;
 import clavardaj.controller.listener.LoginChangeListener;
 import clavardaj.controller.listener.LoginListener;
 import clavardaj.model.Agent;
+import clavardaj.model.Message;
+import clavardaj.model.TextMessage;
 import clavardaj.model.packet.emit.PacketToEmit;
+import clavardaj.model.packet.receive.PacketRcvLogin;
+import clavardaj.model.packet.receive.PacketToReceive;
 
 public class TestPacketFrame extends JFrame {
 
@@ -51,6 +57,7 @@ public class TestPacketFrame extends JFrame {
 
 	private JTextField field;
 	private JList<Agent> userList;
+	private JCheckBox sendFile;
 
 	private DataOutputStream out;
 
@@ -107,6 +114,11 @@ public class TestPacketFrame extends JFrame {
 			}
 		});
 		panel.add(connect, BorderLayout.SOUTH);
+
+		sendFile = new JCheckBox("Send file");
+		sendFile.addActionListener(e -> field.setEnabled(!((JCheckBox) e.getSource()).isSelected()));
+
+		panel.add(sendFile);
 
 		return panel;
 	}
@@ -190,7 +202,6 @@ public class TestPacketFrame extends JFrame {
 
 		@Override
 		public void onSelfLogin(UUID uuid, String name) {
-			// TODO
 		}
 
 		@Override
@@ -206,7 +217,7 @@ public class TestPacketFrame extends JFrame {
 
 		@Override
 		public void onSelfLoginChange(String newLogin) {
-			
+
 		}
 	}
 
@@ -216,12 +227,12 @@ public class TestPacketFrame extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String buttonName = ((JButton) e.getSource()).getText();
-
 			Agent agent = userList.getSelectedValue();
 			if (agent == null) {
 				userList.setSelectedIndex(0);
 				agent = userList.getSelectedValue();
 			}
+			Message message = null;
 
 			PacketToEmit packet = null;
 			Class<?> packetClass = null;
@@ -234,16 +245,24 @@ public class TestPacketFrame extends JFrame {
 			}
 
 			if (buttonName.equals("PacketEmtMessage")) {
-				Agent agent1 = userList.getSelectedValue();
-				if (agent1 == null) {
-					userList.setSelectedIndex(0);
-					agent1 = userList.getSelectedValue();
-					if (agent1 == null) {
-						System.err.println("There must be an agent to select to send this packet...");
+				if (field.isEnabled())
+					message = new TextMessage(field.getText(), umanager.getCurrentAgent(), agent, LocalDateTime.now());
+				else {
+					JFileChooser chooser = new JFileChooser();
+					chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+					int answer = chooser.showOpenDialog(null);
+					if (answer == JFileChooser.APPROVE_OPTION) {
+						File file = chooser.getSelectedFile();
+						try {
+							message = Message.createFileMessage(file, UserManager.getInstance().getCurrentAgent(),
+									agent);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					} else
 						return;
-					}
 				}
-				ListenerManager.getInstance().fireMessageToSend(agent1, field.getText());
 			}
 
 			// On prend le constructeur qui n'est pas celui hérité par Object et...
@@ -254,6 +273,10 @@ public class TestPacketFrame extends JFrame {
 					for (Class<?> clazz : constructor.getParameterTypes()) {
 						// On insère les paramètres au fur et à mesure !
 						switch (clazz.getCanonicalName()) {
+						case "boolean":
+							parameters.add(sendFile.isSelected());
+							break;
+
 						case "java.lang.String":
 							parameters.add(field.getText());
 							break;
@@ -316,13 +339,19 @@ public class TestPacketFrame extends JFrame {
 			}
 
 			try {
-				if (agent.getIp().equals(InetAddress.getLocalHost()) || agent.getIp().equals(InetAddress.getLoopbackAddress()))
+				if (agent.getIp().equals(InetAddress.getLocalHost())
+						|| agent.getIp().equals(InetAddress.getLoopbackAddress()))
 					pmanager.sendPacket(out, packet);
 				else
 					pmanager.sendPacket(agent.getIp(), packet);
 			} catch (UnknownHostException e1) {
 				e1.printStackTrace();
 			}
+
+			if (buttonName.equals("PacketEmtMessage")) {
+				ListenerManager.getInstance().fireMessageToSend(agent, message);
+			}
+
 		}
 
 	}
@@ -358,8 +387,10 @@ public class TestPacketFrame extends JFrame {
 	}
 
 	public static void main(String[] args) {
+		String str = JOptionPane.showInputDialog(null, "Choisir votre nom", "Login", JOptionPane.INFORMATION_MESSAGE);
+
 		TestPacketFrame frame = new TestPacketFrame();
-		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), "Zefinder");
+		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), (str == null) ? "" : str);
 
 		Socket socket;
 		try {
@@ -370,8 +401,16 @@ public class TestPacketFrame extends JFrame {
 
 			socket.close();
 			socket = new Socket("localhost", newPort);
-
+			in = new DataInputStream(socket.getInputStream());
 			frame.out = new DataOutputStream(socket.getOutputStream());
+
+			// Osef du numéro, on connait le paquet
+			in.readInt();
+
+			PacketToReceive login = new PacketRcvLogin();
+			login.initFromStream(in);
+			login.processPacket();
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

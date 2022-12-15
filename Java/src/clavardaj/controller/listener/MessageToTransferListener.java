@@ -2,6 +2,7 @@ package clavardaj.controller.listener;
 
 import clavardaj.controller.ListenerManager;
 import clavardaj.model.Agent;
+import clavardaj.model.Message;
 
 /**
  * <p>
@@ -16,21 +17,20 @@ import clavardaj.model.Agent;
  */
 public interface MessageToTransferListener {
 
-	// TODO Changer Agent et String en Message pour tout contenir sans tout modifier
-	// en cas de changement de structure !
 	/**
 	 * Invoked when the main agent wants to send a message to a distant agent.
 	 * 
-	 * @param agent  the distant {@link Agent} to send the message to
-	 * @param string the message
+	 * @param agent   the distant {@link Agent} to send the message to
+	 * @param message the message
 	 */
-	void onMessageToSend(Agent agent, String string);
+	void onMessageToSend(Agent agent, Message message);
 
 	/**
 	 * Invoked when the main agent needs to receive a message from a distant agent.
 	 * 
-	 * @param agent the {@link Agent} who sent the message
+	 * @param agent  the {@link Agent} who sent the message
+	 * @param isFile true if the message is a file
 	 */
-	void onMessageToReceive(Agent agent);
+	void onMessageToReceive(Agent agent, boolean isFile);
 
 }

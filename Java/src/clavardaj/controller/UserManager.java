@@ -32,7 +32,7 @@ import clavardaj.model.Agent;
  * @see DBManager
  * @see ListenerManager
  * 
- * @author NicolasRigal
+ * @author Nicolas Rigal
  * 
  * @since 1.0.0
  *
