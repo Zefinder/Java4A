@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
@@ -44,31 +47,18 @@ public abstract class UserThread {
 			if (isFile) {
 				fileName = in.readUTF();
 				int len = in.readInt();
-				byte[] content;
+				String newName;
 				System.out.println(len);
-				content = readFile(len);
-				message = new FileMessage(fileName, content, sender, UserManager.getInstance().getCurrentAgent(),
-						LocalDateTime.now());
-
-				// TODO Le mettre dans la frame au clic
-				// Stratégie : le stocker dans un dossier temporaire et au moment de
-				// l'enregistrement : déplacement et renommage !
-				File file = new File(Main.OUTPUT.getAbsolutePath() + File.separator + fileName);
-				// TODO Si le nom du fichier existe déjà c'est un problème. Hasher le nom et
-				// trouver un moyen pour le retrouver !
-				file.createNewFile();
-
-				// On remplit le fichier
-				FileOutputStream stream = new FileOutputStream(file);
-				stream.write(content);
-				stream.close();
+				newName = readFile(len, fileName);
+				message = new FileMessage(fileName, newName.getBytes(), sender,
+						UserManager.getInstance().getCurrentAgent(), LocalDateTime.now());
 
 			} else {
 				String content = in.readUTF();
 				message = new TextMessage(content, sender, UserManager.getInstance().getCurrentAgent(),
 						LocalDateTime.now());
 			}
-		} catch (IOException e) {
+		} catch (IOException | NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
 		return message;
@@ -91,23 +81,35 @@ public abstract class UserThread {
 		out.writeInt(content.length);
 
 		for (int i = 0; i < content.length; i += chunkSize) {
+			int size = Math.min(content.length, i + chunkSize);
 			byte[] buffer = Arrays.copyOfRange(content, i, Math.min(content.length, i + chunkSize));
-			out.write(buffer);
+			out.write(buffer, 0, size);
 			out.flush();
 		}
 	}
 
-	private byte[] readFile(int len) throws IOException {
-		byte[] content = new byte[len];
+	// Retourne le nom temporaire du fichier
+	private String readFile(int len, String fileName) throws IOException, NoSuchAlgorithmException {
 		byte[] buffer = new byte[chunkSize];
 
-		int index = 0;
+		File file = new File(Main.OUTPUT.getAbsolutePath() + File.separator + fileName);
+		// TODO Si le nom du fichier existe déjà c'est un problème. Hasher le nom et
+		// trouver un moyen pour le retrouver !
+		file.createNewFile();
+
+		// On remplit le fichier
+		FileOutputStream stream = new FileOutputStream(file);
+
 		for (int size = len; size > 0; size -= chunkSize) {
-			in.read(buffer, 0, Math.min(chunkSize, size));
-			System.arraycopy(buffer, 0, content, chunkSize * index, Math.min(chunkSize, size));
-			index++;
+			int byteRead = in.read(buffer, 0, Math.min(chunkSize, size));
+			stream.write(buffer, 0, byteRead);
 		}
-		return content;
+
+		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		byte[] encodedhash = digest.digest(fileName.getBytes(StandardCharsets.UTF_8));
+
+		stream.close();
+		return "";
 	}
 
 	public void close() throws IOException {
