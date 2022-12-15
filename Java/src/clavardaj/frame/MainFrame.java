@@ -33,8 +33,8 @@ public class MainFrame extends JFrame {
 	private JTextField searchField;
 	private ArrayList<ContactPanel> contacts;
 
-	ListenerManager lmanager = ListenerManager.getInstance();
-	UserManager umanager = UserManager.getInstance();
+	private ListenerManager lmanager = ListenerManager.getInstance();
+	private UserManager umanager = UserManager.getInstance();
 
 	public MainFrame(String login) {
 		this.setTitle("Clavardaj - " + login);

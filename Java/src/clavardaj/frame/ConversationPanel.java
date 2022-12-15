@@ -1,6 +1,8 @@
 package clavardaj.frame;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -10,6 +12,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 //import clavardaj.controller.DBManager;
 import clavardaj.controller.ListenerManager;
@@ -22,9 +25,13 @@ import clavardaj.model.TextMessage;
 public class ConversationPanel extends JPanel implements ConversationChangeListener {
 
 	private JLabel name;
+	private JTextField champMessage;
 	private UUID uuid;
 	private List<Message> messages;
 	private JPanel messagesPanel;
+
+	private ListenerManager lmanager = ListenerManager.getInstance();
+	private UserManager umanager = UserManager.getInstance();
 
 	/**
 	 * 
@@ -37,6 +44,15 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		this.name = new JLabel("");
 		this.messages = new ArrayList<>();
 		this.messagesPanel = buildMessagesPanel();
+		this.champMessage = new JTextField();
+		champMessage.addActionListener(new ActionListener() {
+//TODO : que faire quand on envoie un message
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				lmanager.fireMessageToSend(umanager.getCurrentAgent(),
+						new TextMessage(champMessage.getText(), umanager.getCurrentAgent().getUuid(), uuid, null));
+			}
+		});
 
 		this.add(name);
 		this.add(messagesPanel);
