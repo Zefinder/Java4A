@@ -42,6 +42,12 @@ public class UserManager implements LoginListener, LoginChangeListener {
 	private static final UserManager instance = new UserManager();
 
 	private List<Agent> agentList;
+	
+	@Deprecated
+	public List<Agent> getAgentList() {
+		return agentList;
+	}
+
 	private Agent currentAgent;
 
 	private UserManager() {

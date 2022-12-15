@@ -5,7 +5,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -15,7 +18,10 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import clavardaj.controller.ListenerManager;
+import clavardaj.controller.UserManager;
 import clavardaj.frame.ContactPanel.State;
+import clavardaj.model.Agent;
 
 public class MainFrame extends JFrame {
 
@@ -26,6 +32,9 @@ public class MainFrame extends JFrame {
 
 	private JTextField searchField;
 	private ArrayList<ContactPanel> contacts;
+
+	ListenerManager lmanager = ListenerManager.getInstance();
+	UserManager umanager = UserManager.getInstance();
 
 	public MainFrame(String login) {
 		this.setTitle("Clavardaj - " + login);
@@ -93,11 +102,11 @@ public class MainFrame extends JFrame {
 
 		JPanel leftHandPanel = buildLeftHandPanel();
 		JPanel conversationPanel = buildConversationPanel();
-		
+
 		JSeparator jSeparator = new JSeparator(SwingConstants.VERTICAL);
-		jSeparator.setPreferredSize(new Dimension (10, this.getHeight()));
+		jSeparator.setPreferredSize(new Dimension(10, this.getHeight()));
 		jSeparator.setMaximumSize(jSeparator.getPreferredSize());
-		
+
 		// Création d'un espace horizontal non sécable
 		panel.add(Box.createHorizontalStrut(10));
 		panel.add(leftHandPanel);
@@ -113,14 +122,24 @@ public class MainFrame extends JFrame {
 		JPanel panel = new JPanel();
 		contacts = new ArrayList<>();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+		Agent bebs = null, cube = null;
+		try {
+			bebs = new Agent(UUID.randomUUID(), InetAddress.getLocalHost(), "Bébou");
+			cube = new Agent(UUID.randomUUID(), InetAddress.getLocalHost(), "Cube");
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
 
-		ContactPanel cp1 = new ContactPanel("Bébou", State.CONNECTED);
-		ContactPanel cp2 = new ContactPanel("Cube", State.DISCONNECTED);
+		lmanager.fireAgentLogin(bebs);
+		lmanager.fireAgentLogin(cube);
+
+		ContactPanel cp1 = new ContactPanel(bebs.getName(), bebs.getUuid(), State.CONNECTED);
+		ContactPanel cp2 = new ContactPanel(cube.getName(), cube.getUuid(), State.DISCONNECTED);
 		contacts.add(cp1);
 		contacts.add(cp2);
 
 		contacts.forEach(contact -> panel.add(contact));
-		
+
 		panel.add(Box.createVerticalGlue());
 		return panel;
 

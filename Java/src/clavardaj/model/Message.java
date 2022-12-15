@@ -9,13 +9,11 @@ import java.time.format.DateTimeFormatter;
 
 public abstract class Message {
 
-	private String content;
 	private UUID uuidSender;
 	private UUID uuidReceiver;
 	private LocalDateTime date;
 
-	public Message(String content, UUID uuidSender, UUID uuidReceiver, LocalDateTime date) {
-		this.content = content;
+	public Message(UUID uuidSender, UUID uuidReceiver, LocalDateTime date) {
 		this.uuidSender = uuidSender;
 		this.uuidReceiver = uuidReceiver;
 		this.date = date;
@@ -23,7 +21,7 @@ public abstract class Message {
 
 	public abstract byte[] getContent();
 
-	public UUID getUuidSender() {
+	public UUID getSender() {
 		return uuidSender;
 	}
 
@@ -31,7 +29,7 @@ public abstract class Message {
 		return date;
 	}
 
-	public UUID getUuidReceiver() {
+	public UUID getReceiver() {
 		return uuidReceiver;
 	}
 
@@ -42,8 +40,8 @@ public abstract class Message {
 		return content;
 	}
 
-	public static Message createFileMessage(File file, Agent sender, Agent receiver) throws IOException {
-		return new FileMessage(file.getName(), parseFile(file), sender, receiver, LocalDateTime.now());
+	public static Message createFileMessage(File file, UUID uuidSender, UUID uuidReceiver) throws IOException {
+		return new FileMessage(file.getName(), parseFile(file), uuidSender, uuidReceiver, LocalDateTime.now());
 	}
 
 	@Override

@@ -125,7 +125,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 		System.out.println("[ThreadManager] Message to receive");
 		UserThread userThread = conversations.get(agent);
 
-		Message message = userThread.read(agent, isFile);
+		Message message = userThread.read(agent.getUuid(), isFile);
 		ListenerManager.getInstance().fireMessageReceived(message);
 	}
 

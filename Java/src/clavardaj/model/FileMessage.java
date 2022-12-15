@@ -1,14 +1,15 @@
 package clavardaj.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class FileMessage extends Message {
 	
 	private String fileName;
 	private byte[] content;
 
-	public FileMessage(String fileName, byte[] content, Agent sender, Agent receiver, LocalDateTime date) {
-		super(sender, receiver, date);
+	public FileMessage(String fileName, byte[] content, UUID uuidSender, UUID uuidReceiver, LocalDateTime date) {
+		super(uuidSender, uuidReceiver, date);
 		this.content = content;
 		this.fileName = fileName;
 	}

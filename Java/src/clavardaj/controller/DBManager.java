@@ -115,8 +115,7 @@ public class DBManager implements LoginListener, MessageListener {
 	private void addMessage(Message message) throws SQLException {
 		statement.execute(String.format(
 				"INSERT INTO `message` (`userSend`, `userRcv`, `date`, `content`) VALUES ('%s', '%s', '%s', '%s');",
-				message.getUuidSender(), message.getUuidReceiver(), message.getDate().format(formatter),
-				message.getContent()));
+				message.getSender(), message.getReceiver(), message.getDate().format(formatter), message.getContent()));
 	}
 
 	/**
@@ -153,8 +152,7 @@ public class DBManager implements LoginListener, MessageListener {
 			UUID userRcv = UUID.fromString(resultSet.getString("userRcv"));
 			LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
 
-			messages.add(
-					new TextMessage(content, userSend, userRcv, date));
+			messages.add(new TextMessage(content, userSend, userRcv, date));
 		}
 
 		resultSet.close();

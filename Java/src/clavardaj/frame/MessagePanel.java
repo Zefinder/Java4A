@@ -15,20 +15,12 @@ public class MessagePanel extends JPanel {
 	public MessagePanel(Message message) {
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
-//		Version à n'activer que lorsque tout sera relié
-//		if (message.getSender().equals(UserManager.getInstance().getCurrentAgent())) {
-//			this.add(Box.createHorizontalGlue());
-//			this.add(new JLabel(message.getContent()));
-//		} else {
-//			this.add(new JLabel(message.getContent()));
-//			this.add(Box.createHorizontalGlue());
-//		}
-
-		if (message.getUuidSender().equals(UserManager.getInstance().getCurrentAgent().getUuid())) {
+//		if (message.getSender().equals(UserManager.getInstance().getCurrentAgent().getUuid())) {
+		if (message.getSender().equals(UserManager.getInstance().getAgentList().get(0).getUuid())) {
 			this.add(Box.createHorizontalGlue());
-			this.add(new JLabel(message.getContent()));
+			this.add(new JLabel(new String(message.getContent())));
 		} else {
-			this.add(new JLabel(message.getContent()));
+			this.add(new JLabel(new String(message.getContent())));
 			this.add(Box.createHorizontalGlue());
 		}
 	}

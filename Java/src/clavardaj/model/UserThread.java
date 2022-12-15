@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.UUID;
 
 import clavardaj.Main;
 import clavardaj.controller.UserManager;
@@ -37,7 +38,7 @@ public abstract class UserThread {
 		}
 	}
 
-	public Message read(Agent sender, boolean isFile) {
+	public Message read(UUID sender, boolean isFile) {
 		Message message = null;
 		String fileName = "";
 		try {
@@ -47,7 +48,7 @@ public abstract class UserThread {
 				byte[] content;
 				System.out.println(len);
 				content = readFile(len);
-				message = new FileMessage(fileName, content, sender, UserManager.getInstance().getCurrentAgent(),
+				message = new FileMessage(fileName, content, sender, UserManager.getInstance().getCurrentAgent().getUuid(),
 						LocalDateTime.now());
 
 				// TODO Le mettre dans la frame au clic
@@ -65,7 +66,7 @@ public abstract class UserThread {
 
 			} else {
 				String content = in.readUTF();
-				message = new TextMessage(content, sender, UserManager.getInstance().getCurrentAgent(),
+				message = new TextMessage(content, sender, UserManager.getInstance().getCurrentAgent().getUuid(),
 						LocalDateTime.now());
 			}
 		} catch (IOException e) {
