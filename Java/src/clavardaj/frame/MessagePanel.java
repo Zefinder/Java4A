@@ -17,9 +17,9 @@ public class MessagePanel extends JPanel {
 		
 		if (message.getSender().equals(UserManager.getInstance().getCurrentAgent())) {
 			this.add(Box.createHorizontalGlue());
-			this.add(new JLabel(message.getContent()));
+			this.add(new JLabel(new String(message.getContent())));
 		} else {
-			this.add(new JLabel(message.getContent()));
+			this.add(new JLabel(new String(message.getContent())));
 			this.add(Box.createHorizontalGlue());
 		}
 	}
