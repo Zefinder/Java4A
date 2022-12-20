@@ -115,7 +115,7 @@ public class PacketManager implements LoginListener {
 
 	private PacketManager() {
 		ListenerManager.getInstance().addLoginListener(this);
-		
+
 		nextAvailablePort = TCP_PORT;
 		localAddresses = new ArrayList<>();
 		broadcastAddresses = new ArrayList<>();
@@ -566,6 +566,8 @@ public class PacketManager implements LoginListener {
 						if (Main.DEBUG)
 							System.out.println("[PacketThread] Socket closed");
 
+						// TODO Travailler sur ça, donner en paramètre l'agent ou l'IP pour pouvoir
+						// déclencher le logout de l'agent.
 						for (InetAddress ip : ipToSocket.keySet()) {
 							Socket socket = ipToSocket.get(ip);
 							try {
