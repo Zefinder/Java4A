@@ -364,17 +364,17 @@ public class PacketManager implements LoginListener {
 
 					DataInputStream in = new DataInputStream(socket.getInputStream());
 
-					// On lance l'écoute de paquets pour TCP
-					new Thread(new PacketThread(in), "Packet read").start();
-					newServer.close();
-
-					// On envoie un login packet à la machine distante avec notre nom !
 					if (socket.getInetAddress().toString().equals("/127.0.0.1"))
 						for (InetAddress ip : localAddresses)
 							ipToSocket.put(ip, socket);
 
 					ipToSocket.put(socket.getInetAddress(), socket);
 
+					// On lance l'écoute de paquets pour TCP
+					new Thread(new PacketThread(in, socket.getInetAddress()), "Packet read").start();
+					newServer.close();
+
+					// On envoie un login packet à la machine distante avec notre nom !
 					Agent agent = UserManager.getInstance().getCurrentAgent();
 					sendPacket(socket.getInetAddress(),
 							new PacketEmtLogin(agent.getUuid(), socket.getLocalAddress(), agent.getName()));
@@ -492,10 +492,10 @@ public class PacketManager implements LoginListener {
 
 					in = new DataInputStream(client.getInputStream());
 
-					// On lance l'écoute de paquets pour TCP
-					new Thread(new PacketThread(in), "Packet read").start();
-
 					ipToSocket.put(client.getInetAddress(), client);
+
+					// On lance l'écoute de paquets pour TCP
+					new Thread(new PacketThread(in, client.getInetAddress()), "Packet read").start();
 
 					// On envoie un login packet à la machine distante avec notre nom !
 					Agent agent = UserManager.getInstance().getCurrentAgent();
@@ -532,9 +532,11 @@ public class PacketManager implements LoginListener {
 	private class PacketThread implements Runnable {
 
 		private DataInputStream inputStream;
+		private InetAddress ip;
 
-		public PacketThread(DataInputStream inputStream) {
+		public PacketThread(DataInputStream inputStream, InetAddress ip) {
 			this.inputStream = inputStream;
+			this.ip = ip;
 		}
 
 		private PacketToReceive readPacket(int idPacket)
@@ -565,20 +567,10 @@ public class PacketManager implements LoginListener {
 					if (e instanceof IOException) {
 						if (Main.DEBUG)
 							System.out.println("[PacketThread] Socket closed");
-
-						// TODO Travailler sur ça, donner en paramètre l'agent ou l'IP pour pouvoir
-						// déclencher le logout de l'agent.
-						for (InetAddress ip : ipToSocket.keySet()) {
-							Socket socket = ipToSocket.get(ip);
-							try {
-								if (inputStream.equals(socket.getInputStream())) {
-									Agent agent = UserManager.getInstance().getAgentByIP(ip);
-									ListenerManager.getInstance().fireAgentLogout(agent);
-								}
-							} catch (IOException e1) {
-								e1.printStackTrace();
-							}
-						}
+						
+						Agent agent = UserManager.getInstance().getAgentByIP(ip);
+						ListenerManager.getInstance().fireAgentLogout(agent);
+						
 					} else
 						e.printStackTrace();
 

@@ -65,7 +65,7 @@ public class TestPacketFrame extends JFrame {
 
 	// Instanciation des managers
 	ThreadManager tmanager = ThreadManager.getInstance();
-	ListenerManager lmanagr = ListenerManager.getInstance();
+	ListenerManager lmanager = ListenerManager.getInstance();
 	PacketManager pmanager = PacketManager.getInstance();
 	// DBManager dmanager = DBManager.getInstance();
 	UserManager umanager = UserManager.getInstance();
@@ -165,7 +165,8 @@ public class TestPacketFrame extends JFrame {
 			this.setLocation(3 * (int) ((dimension.getWidth() - getWidth()) / 4),
 					(int) ((dimension.getHeight() - getHeight()) / 2));
 
-			ListenerManager.getInstance().addLoginListener(this);
+			lmanager.addLoginListener(this);
+			lmanager.addLoginChangeListener(this);
 
 			JPanel panel = buildUserPanel();
 			this.add(panel);
@@ -217,7 +218,8 @@ public class TestPacketFrame extends JFrame {
 
 		@Override
 		public void onSelfLoginChange(String newLogin) {
-
+			model.removeElement(umanager.getCurrentAgent());
+			model.addElement(umanager.getCurrentAgent());
 		}
 	}
 
@@ -255,8 +257,7 @@ public class TestPacketFrame extends JFrame {
 					if (answer == JFileChooser.APPROVE_OPTION) {
 						File file = chooser.getSelectedFile();
 						try {
-							message = Message.createFileMessage(file, UserManager.getInstance().getCurrentAgent(),
-									agent);
+							message = Message.createFileMessage(file, umanager.getCurrentAgent(), agent);
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
@@ -349,9 +350,21 @@ public class TestPacketFrame extends JFrame {
 			}
 
 			if (buttonName.equals("PacketEmtMessage")) {
-				ListenerManager.getInstance().fireMessageToSend(agent, message);
+				lmanager.fireMessageToSend(agent, message);
 			}
 
+			if (buttonName.equals("PacketEmtCloseConversation")) {
+				lmanager.fireConversationClosing(agent);
+			}
+
+			// Il y aura un trou de 1 port à cause de cette technique mais c'est pas grave
+			if (buttonName.equals("PacketEmtOpenConversation")) {
+				lmanager.fireConversationOpening(agent, pmanager.getNextAvailablePort() - 1);
+			}
+
+			if (buttonName.equals("PacketEmtLoginChange")) {
+				lmanager.fireSelfLoginChange(field.getText());
+			}
 		}
 
 	}

@@ -109,6 +109,7 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 	public void onConversationClosed(Agent agent) {
 		try {
 			conversations.get(agent).close();
+			conversations.remove(agent);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

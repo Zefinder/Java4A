@@ -17,8 +17,9 @@ import clavardaj.controller.UserManager;
 
 /**
  * 
- * @author nicolas
- *
+ * @author Nicolas Rigal
+ * @author Adrien Jakubiak
+ * 
  */
 public abstract class UserThread {
 
@@ -26,9 +27,8 @@ public abstract class UserThread {
 	private DataInputStream in;
 	private DataOutputStream out;
 
-	// En réalité le buffer de la socket fait 64ko mais on réduit de moitié pour ne
-	// pas surcharger la socket !
-	private final int chunkSize = 0x8000;
+	// Ne pas dépasser 64ko (0xFFFF)
+	private final int chunkSize = 0x2000;
 
 	public UserThread(Socket socket) {
 		this.socket = socket;
@@ -86,11 +86,11 @@ public abstract class UserThread {
 			out.write(buffer, 0, size);
 			out.flush();
 		}
-		
+
 		MessageDigest md5Digest = MessageDigest.getInstance("MD5");
 		String checksum = getFileChecksum(md5Digest, content);
-		System.out.println(String.format("[Client] - File sent :     %s (size=%d), hash=%s", ((FileMessage) message).getFileName(),
-				content.length, checksum));
+		System.out.println(String.format("[Client] - File sent :     %s (size=%d), hash=%s",
+				((FileMessage) message).getFileName(), content.length, checksum));
 	}
 
 	// Retourne le nom temporaire du fichier
@@ -107,8 +107,9 @@ public abstract class UserThread {
 		// On remplit le fichier
 		FileOutputStream stream = new FileOutputStream(file);
 
-		for (int size = len; size > 0; size -= chunkSize) {
-			int byteRead = in.read(buffer, 0, Math.min(chunkSize, size));
+		int byteRead = 0;
+		for (int size = len; size > 0; size -= byteRead) {
+			byteRead = in.read(buffer, 0, Math.min(chunkSize, size));
 			stream.write(buffer, 0, byteRead);
 		}
 
@@ -133,8 +134,8 @@ public abstract class UserThread {
 		}
 
 		return sb.toString();
-	}	
-	
+	}
+
 	public void close() throws IOException {
 		socket.close();
 		in.close();
