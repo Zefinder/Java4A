@@ -25,6 +25,8 @@ import java.util.UUID;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -40,7 +42,11 @@ import clavardaj.controller.UserManager;
 import clavardaj.controller.listener.LoginChangeListener;
 import clavardaj.controller.listener.LoginListener;
 import clavardaj.model.Agent;
+import clavardaj.model.Message;
+import clavardaj.model.TextMessage;
 import clavardaj.model.packet.emit.PacketToEmit;
+import clavardaj.model.packet.receive.PacketRcvLogin;
+import clavardaj.model.packet.receive.PacketToReceive;
 
 public class TestPacketFrame extends JFrame {
 
@@ -51,6 +57,7 @@ public class TestPacketFrame extends JFrame {
 
 	private JTextField field;
 	private JList<Agent> userList;
+	private JCheckBox sendFile;
 
 	private DataOutputStream out;
 
@@ -58,7 +65,7 @@ public class TestPacketFrame extends JFrame {
 
 	// Instanciation des managers
 	ThreadManager tmanager = ThreadManager.getInstance();
-	ListenerManager lmanagr = ListenerManager.getInstance();
+	ListenerManager lmanager = ListenerManager.getInstance();
 	PacketManager pmanager = PacketManager.getInstance();
 	// DBManager dmanager = DBManager.getInstance();
 	UserManager umanager = UserManager.getInstance();
@@ -108,6 +115,11 @@ public class TestPacketFrame extends JFrame {
 		});
 		panel.add(connect, BorderLayout.SOUTH);
 
+		sendFile = new JCheckBox("Send file");
+		sendFile.addActionListener(e -> field.setEnabled(!((JCheckBox) e.getSource()).isSelected()));
+
+		panel.add(sendFile);
+
 		return panel;
 	}
 
@@ -153,7 +165,8 @@ public class TestPacketFrame extends JFrame {
 			this.setLocation(3 * (int) ((dimension.getWidth() - getWidth()) / 4),
 					(int) ((dimension.getHeight() - getHeight()) / 2));
 
-			ListenerManager.getInstance().addLoginListener(this);
+			lmanager.addLoginListener(this);
+			lmanager.addLoginChangeListener(this);
 
 			JPanel panel = buildUserPanel();
 			this.add(panel);
@@ -190,7 +203,6 @@ public class TestPacketFrame extends JFrame {
 
 		@Override
 		public void onSelfLogin(UUID uuid, String name) {
-			// TODO
 		}
 
 		@Override
@@ -206,7 +218,8 @@ public class TestPacketFrame extends JFrame {
 
 		@Override
 		public void onSelfLoginChange(String newLogin) {
-			
+			model.removeElement(umanager.getCurrentAgent());
+			model.addElement(umanager.getCurrentAgent());
 		}
 	}
 
@@ -216,12 +229,12 @@ public class TestPacketFrame extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String buttonName = ((JButton) e.getSource()).getText();
-
 			Agent agent = userList.getSelectedValue();
 			if (agent == null) {
 				userList.setSelectedIndex(0);
 				agent = userList.getSelectedValue();
 			}
+			Message message = null;
 
 			PacketToEmit packet = null;
 			Class<?> packetClass = null;
@@ -234,16 +247,23 @@ public class TestPacketFrame extends JFrame {
 			}
 
 			if (buttonName.equals("PacketEmtMessage")) {
-				Agent agent1 = userList.getSelectedValue();
-				if (agent1 == null) {
-					userList.setSelectedIndex(0);
-					agent1 = userList.getSelectedValue();
-					if (agent1 == null) {
-						System.err.println("There must be an agent to select to send this packet...");
+				if (field.isEnabled())
+					message = new TextMessage(field.getText(), umanager.getCurrentAgent(), agent, LocalDateTime.now());
+				else {
+					JFileChooser chooser = new JFileChooser();
+					chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+					int answer = chooser.showOpenDialog(null);
+					if (answer == JFileChooser.APPROVE_OPTION) {
+						File file = chooser.getSelectedFile();
+						try {
+							message = Message.createFileMessage(file, umanager.getCurrentAgent(), agent);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					} else
 						return;
-					}
 				}
-				ListenerManager.getInstance().fireMessageToSend(agent1, field.getText());
 			}
 
 			// On prend le constructeur qui n'est pas celui hérité par Object et...
@@ -254,6 +274,10 @@ public class TestPacketFrame extends JFrame {
 					for (Class<?> clazz : constructor.getParameterTypes()) {
 						// On insère les paramètres au fur et à mesure !
 						switch (clazz.getCanonicalName()) {
+						case "boolean":
+							parameters.add(sendFile.isSelected());
+							break;
+
 						case "java.lang.String":
 							parameters.add(field.getText());
 							break;
@@ -316,12 +340,30 @@ public class TestPacketFrame extends JFrame {
 			}
 
 			try {
-				if (agent.getIp().equals(InetAddress.getLocalHost()) || agent.getIp().equals(InetAddress.getLoopbackAddress()))
+				if (agent.getIp().equals(InetAddress.getLocalHost())
+						|| agent.getIp().equals(InetAddress.getLoopbackAddress()))
 					pmanager.sendPacket(out, packet);
 				else
 					pmanager.sendPacket(agent.getIp(), packet);
 			} catch (UnknownHostException e1) {
 				e1.printStackTrace();
+			}
+
+			if (buttonName.equals("PacketEmtMessage")) {
+				lmanager.fireMessageToSend(agent, message);
+			}
+
+			if (buttonName.equals("PacketEmtCloseConversation")) {
+				lmanager.fireConversationClosing(agent);
+			}
+
+			// Il y aura un trou de 1 port à cause de cette technique mais c'est pas grave
+			if (buttonName.equals("PacketEmtOpenConversation")) {
+				lmanager.fireConversationOpening(agent, pmanager.getNextAvailablePort() - 1);
+			}
+
+			if (buttonName.equals("PacketEmtLoginChange")) {
+				lmanager.fireSelfLoginChange(field.getText());
 			}
 		}
 
@@ -358,8 +400,10 @@ public class TestPacketFrame extends JFrame {
 	}
 
 	public static void main(String[] args) {
+		String str = JOptionPane.showInputDialog(null, "Choisir votre nom", "Login", JOptionPane.INFORMATION_MESSAGE);
+
 		TestPacketFrame frame = new TestPacketFrame();
-		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), "Zefinder");
+		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), (str == null) ? "" : str);
 
 		Socket socket;
 		try {
@@ -370,8 +414,16 @@ public class TestPacketFrame extends JFrame {
 
 			socket.close();
 			socket = new Socket("localhost", newPort);
-
+			in = new DataInputStream(socket.getInputStream());
 			frame.out = new DataOutputStream(socket.getOutputStream());
+
+			// Osef du numéro, on connait le paquet
+			in.readInt();
+
+			PacketToReceive login = new PacketRcvLogin();
+			login.initFromStream(in);
+			login.processPacket();
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

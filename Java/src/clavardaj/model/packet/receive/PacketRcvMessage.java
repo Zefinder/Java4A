@@ -11,20 +11,23 @@ import clavardaj.model.Agent;
 public class PacketRcvMessage implements PacketToReceive {
 
 	private UUID uuid;
+	private boolean isFile; 
 
 	@Override
 	public void initFromStream(DataInputStream stream) throws IOException {
 		this.uuid = UUID.fromString(stream.readUTF());
+		this.isFile = stream.readBoolean();
+		
 	}
 
 	@Override
 	public void processPacket() {
 		Agent sender = UserManager.getInstance().getAgentByUuid(uuid);
-		ListenerManager.getInstance().fireMessageToReceive(sender);
+		ListenerManager.getInstance().fireMessageToReceive(sender, isFile);
 	}
 
 	@Override
 	public String toString() {
-		return "PacketRcvMessage[uuid=" + uuid.toString() + "]";
+		return String.format("PacketRcvMessage[uuid=%s,isFile=%b]", uuid.toString(), isFile);
 	}
 }

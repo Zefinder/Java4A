@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import clavardaj.Main;
 import clavardaj.controller.listener.ConversationListener;
 import clavardaj.controller.listener.MessageToTransferListener;
 import clavardaj.model.Agent;
@@ -33,7 +34,7 @@ import clavardaj.model.UserThread;
  * @see DBManager
  * @see ListenerManager
  * 
- * @author NicolasRigal
+ * @author Nicolas Rigal
  * 
  * @since 1.0.0
  *
@@ -47,6 +48,9 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 		ListenerManager.getInstance().addConversationListener(this);
 		ListenerManager.getInstance().addMessageToTransferListener(this);
 		this.conversations = new HashMap<Agent, UserThread>();
+
+		if (!Main.OUTPUT.exists())
+			Main.OUTPUT.mkdir();
 	}
 
 	@Override
@@ -105,26 +109,24 @@ public class ThreadManager implements MessageToTransferListener, ConversationLis
 	public void onConversationClosed(Agent agent) {
 		try {
 			conversations.get(agent).close();
+			conversations.remove(agent);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public void onMessageToSend(Agent agent, String message) {
+	public void onMessageToSend(Agent agent, Message message) {
 		System.out.println("[ThreadManager] Message to send");
 		conversations.get(agent).write(message);
 	}
 
 	@Override
-	public void onMessageToReceive(Agent agent) {
+	public void onMessageToReceive(Agent agent, boolean isFile) {
 		System.out.println("[ThreadManager] Message to receive");
 		UserThread userThread = conversations.get(agent);
-		if (userThread instanceof ServerThread)
-			return;
 
-		Message message = userThread.read(agent);
-		System.out.println(message);
+		Message message = userThread.read(agent, isFile);
 		ListenerManager.getInstance().fireMessageReceived(message);
 	}
 
