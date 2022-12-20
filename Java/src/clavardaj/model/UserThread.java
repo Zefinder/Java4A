@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -70,22 +70,27 @@ public abstract class UserThread {
 				writeFile((FileMessage) message);
 			} else
 				out.writeUTF(((TextMessage) message).getStringContent());
-		} catch (IOException e) {
+		} catch (IOException | NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void writeFile(FileMessage message) throws IOException {
+	private void writeFile(FileMessage message) throws IOException, NoSuchAlgorithmException {
 		out.writeUTF(((FileMessage) message).getFileName());
 		byte[] content = message.getContent();
 		out.writeInt(content.length);
 
 		for (int i = 0; i < content.length; i += chunkSize) {
-			int size = Math.min(content.length, i + chunkSize);
+			int size = Math.min(content.length - i, chunkSize);
 			byte[] buffer = Arrays.copyOfRange(content, i, Math.min(content.length, i + chunkSize));
 			out.write(buffer, 0, size);
 			out.flush();
 		}
+		
+		MessageDigest md5Digest = MessageDigest.getInstance("MD5");
+		String checksum = getFileChecksum(md5Digest, content);
+		System.out.println(String.format("[Client] - File sent :     %s (size=%d), hash=%s", ((FileMessage) message).getFileName(),
+				content.length, checksum));
 	}
 
 	// Retourne le nom temporaire du fichier
@@ -93,8 +98,10 @@ public abstract class UserThread {
 		byte[] buffer = new byte[chunkSize];
 
 		File file = new File(Main.OUTPUT.getAbsolutePath() + File.separator + fileName);
-		// TODO Si le nom du fichier existe déjà c'est un problème. Hasher le nom et
-		// trouver un moyen pour le retrouver !
+
+		if (file.exists())
+			file.delete();
+
 		file.createNewFile();
 
 		// On remplit le fichier
@@ -105,13 +112,29 @@ public abstract class UserThread {
 			stream.write(buffer, 0, byteRead);
 		}
 
-		MessageDigest digest = MessageDigest.getInstance("SHA-256");
-		byte[] encodedhash = digest.digest(fileName.getBytes(StandardCharsets.UTF_8));
+		MessageDigest md5Digest = MessageDigest.getInstance("MD5");
+		String checksum = getFileChecksum(md5Digest, Files.readAllBytes(file.toPath()));
+
+		if (Main.DEBUG)
+			System.out.println(String.format("[Server] - File received : %s (size=%d), hash=%s", file.getName(),
+					file.length(), checksum));
 
 		stream.close();
 		return "";
 	}
 
+	private String getFileChecksum(MessageDigest digest, byte[] content) throws IOException {
+		digest.update(content);
+		byte[] bytes = digest.digest();
+
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < bytes.length; i++) {
+			sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+		}
+
+		return sb.toString();
+	}	
+	
 	public void close() throws IOException {
 		socket.close();
 		in.close();
