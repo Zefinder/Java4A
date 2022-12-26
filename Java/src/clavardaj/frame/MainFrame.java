@@ -85,6 +85,7 @@ public class MainFrame extends JFrame {
 		panel.add(buildSelfContactPanel());
 		panel.add(searchField);
 		panel.add(buildContactPanel());
+		contacts.get(0).mouseClicked(null);
 
 		return panel;
 	}
@@ -130,6 +131,7 @@ public class MainFrame extends JFrame {
 			e.printStackTrace();
 		}
 
+		lmanager.fireSelfLogin(UUID.randomUUID(), "it's-a me");
 		lmanager.fireAgentLogin(bebs);
 		lmanager.fireAgentLogin(cube);
 

@@ -19,6 +19,12 @@ public abstract class Message {
 		this.date = date;
 	}
 
+	public Message(UUID uuidSender, UUID uuidReceiver) {
+		this.uuidSender = uuidSender;
+		this.uuidReceiver = uuidReceiver;
+		this.date = LocalDateTime.now();
+	}
+
 	public abstract byte[] getContent();
 
 	public UUID getSender() {

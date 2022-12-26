@@ -141,9 +141,9 @@ public class ContactPanel extends JPanel implements LoginChangeListener, LoginLi
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		JOptionPane.showMessageDialog(null,
-				String.format("C'est le moment où on ouvre la conversation avec %s, c'est ça ?", login), "Mmmmh",
-				JOptionPane.INFORMATION_MESSAGE);
+//		JOptionPane.showMessageDialog(null,
+//				String.format("C'est le moment où on ouvre la conversation avec %s, c'est ça ?", login), "Mmmmh",
+//				JOptionPane.INFORMATION_MESSAGE);
 		ListenerManager.getInstance().fireContactSelection(uuid);
 	}
 

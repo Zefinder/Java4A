@@ -14,6 +14,12 @@ public class FileMessage extends Message {
 		this.fileName = fileName;
 	}
 	
+	public FileMessage(String fileName, byte[] content, UUID uuidSender, UUID uuidReceiver) {
+		super(uuidSender, uuidReceiver);
+		this.content = content;
+		this.fileName = fileName;
+	}
+	
 	public String getFileName() {
 		return fileName;
 	}

@@ -1,8 +1,11 @@
 package clavardaj.frame;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,15 +22,17 @@ import clavardaj.controller.ListenerManager;
 import clavardaj.controller.UserManager;
 //import clavardaj.controller.UserManager;
 import clavardaj.controller.listener.ConversationChangeListener;
+import clavardaj.model.FileMessage;
 import clavardaj.model.Message;
 import clavardaj.model.TextMessage;
 
 public class ConversationPanel extends JPanel implements ConversationChangeListener {
 
 	private JLabel name;
-	private JTextField champMessage;
+	private JTextField messageField;
 	private UUID uuid;
-	private List<Message> messages;
+	private List<Message> messages; // les messages du panel
+	private List<Message> messagesBebou, messagesCube; // listes uniquement pour les tests, pour éviter la bdd
 	private JPanel messagesPanel;
 
 	private ListenerManager lmanager = ListenerManager.getInstance();
@@ -41,21 +46,55 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 	public ConversationPanel() {
 		ListenerManager.getInstance().addConversationChangeListener(this);
 
+		this.messagesBebou = new ArrayList<>();
+		this.messagesCube = new ArrayList<>();
+
+		UUID uuidMe = UserManager.getInstance().getCurrentAgent().getUuid();
+		UUID uuidBebs = UserManager.getInstance().getAgentList().get(0).getUuid();
+		UUID uuidCube = UserManager.getInstance().getAgentList().get(1).getUuid();
+
+		messagesBebou.add(new TextMessage("Hey bébou !", uuidMe, uuidBebs,
+				LocalDateTime.parse("2018-05-26 12:14", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))));
+		messagesBebou.add(new TextMessage("Hey cube", uuidBebs, uuidMe));
+		messagesBebou.add(new TextMessage("Comment ça va ?", uuidMe, uuidBebs));
+		messagesBebou.add(new TextMessage("Moi ça va bien en tout cas. Tiens regarde ça", uuidMe, uuidBebs));
+
+		messagesBebou.add(new FileMessage("Triangle.png", null, uuidMe, uuidBebs));
+		messagesBebou.add(new FileMessage("Wow.png", null, uuidBebs, uuidMe));
+
+		messagesCube.add(new TextMessage("Cette fois-ci c'est moi qui commence", uuidCube, uuidMe,
+				LocalDateTime.parse("2022-12-25 11:21", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))));
+		messagesCube.add(new TextMessage("Désolé j'avais pas vu le message", uuidMe, uuidCube));
+
 		this.name = new JLabel("");
 		this.messages = new ArrayList<>();
 		this.messagesPanel = buildMessagesPanel();
-		this.champMessage = new JTextField();
-		champMessage.addActionListener(new ActionListener() {
-//TODO : que faire quand on envoie un message
+
+		this.messageField = new JTextField();
+		messageField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				lmanager.fireMessageToSend(umanager.getCurrentAgent(),
-						new TextMessage(champMessage.getText(), umanager.getCurrentAgent().getUuid(), uuid, null));
+				String text = messageField.getText();
+				if (!(text).equals("")) {
+					TextMessage message = new TextMessage(messageField.getText(), umanager.getCurrentAgent().getUuid(),
+							uuid);
+					lmanager.fireMessageToSend(umanager.getCurrentAgent(), message);
+					if (uuid == uuidBebs) {
+						messagesBebou.add(message);
+					} else if (uuid == uuidCube) {
+						messagesCube.add(message);
+					}
+					messageField.setText("");
+					updateMessagesPanel();
+				}
 			}
 		});
+//		messageField.setPreferredSize(new Dimension(this.getMaximumSize().width, 30));
+		messageField.setMaximumSize(new Dimension(this.getMaximumSize().width, 30));
 
 		this.add(name);
 		this.add(messagesPanel);
+		this.add(messageField);
 
 		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 	}
@@ -69,16 +108,25 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		return panel;
 	}
 
+	private void rebuildMessagesPanel() {
+		this.messagesPanel.removeAll();
+		this.messagesPanel.add(Box.createVerticalGlue());
+		this.messagesPanel.setLayout(new BoxLayout(this.messagesPanel, BoxLayout.PAGE_AXIS));
+		this.messagesPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+	}
+
 	private void updateMessagesPanel() {
-		messages.clear();
+		rebuildMessagesPanel();
+		UUID uuidBebs = UserManager.getInstance().getAgentList().get(0).getUuid();
+		UUID uuidCube = UserManager.getInstance().getAgentList().get(1).getUuid();
+//		TODO à remplacer une fois que la db est en place
 		// messages =
 		// DBManager.getInstance().requestMessages(UserManager.getInstance().getAgentByUuid(this.uuid));
-		UUID uuid0 = UserManager.getInstance().getAgentList().get(0).getUuid();
-		UUID uuid1 = UserManager.getInstance().getAgentList().get(1).getUuid();
-		messages.add(new TextMessage("Hey bébou !", uuid0, uuid1, null));
-		messages.add(new TextMessage("Hey cube", uuid1, uuid0, null));
-		messages.add(new TextMessage("Comment ça va ?", uuid0, uuid1, null));
-		messages.add(new TextMessage("Moi ça va bien en tout cas", uuid0, uuid1, null));
+		if (uuid.equals(uuidBebs)) {
+			messages = new ArrayList<>(messagesBebou);
+		} else if (uuid.equals(uuidCube)) {
+			messages = new ArrayList<>(messagesCube);
+		}
 
 		for (Message message : messages) {
 			messagesPanel.add(new MessagePanel(message));
@@ -87,9 +135,11 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 
 	@Override
 	public void onContactSelection(UUID uuid) {
-		this.uuid = uuid;
-		name.setText(UserManager.getInstance().getAgentByUuid(uuid).getName());
-		updateMessagesPanel();
+		if (!uuid.equals(this.uuid)) {
+			this.uuid = uuid;
+			name.setText(UserManager.getInstance().getAgentByUuid(uuid).getName());
+			updateMessagesPanel();
+		}
 	}
 
 }

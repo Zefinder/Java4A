@@ -12,6 +12,11 @@ public class TextMessage extends Message{
 		this.content = content;
 	}
 	
+	public TextMessage(String content, UUID uuidSender, UUID uuidReceiver) {
+		super(uuidSender, uuidReceiver);
+		this.content = content;
+	}
+	
 	@Override
 	public byte[] getContent() {
 		return content.getBytes();
