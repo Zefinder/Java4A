@@ -91,7 +91,6 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 				}
 			}
 		});
-//		messageField.setPreferredSize(new Dimension(this.getMaximumSize().width, 30));
 		messageField.setMaximumSize(new Dimension(this.getMaximumSize().width, 30));
 
 		this.add(name);
@@ -105,9 +104,8 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		JPanel panel = new JPanel();
 		panel.add(Box.createVerticalGlue());
 		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-//		panel.setBorder(BorderFactory.createLineBorder(Color.black));
 		this.messagesPanel = panel;
-		
+
 		JScrollPane scroll = new JScrollPane(messagesPanel);
 
 		return scroll;
@@ -117,7 +115,6 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		this.messagesPanel.removeAll();
 		this.messagesPanel.add(Box.createVerticalGlue());
 		this.messagesPanel.setLayout(new BoxLayout(this.messagesPanel, BoxLayout.PAGE_AXIS));
-//		this.messagesPanel.setBorder(BorderFactory.createLineBorder(Color.black));
 	}
 
 	private void updateMessagesPanel() {
@@ -136,15 +133,17 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		for (Message message : messages) {
 			messagesPanel.add(new MessagePanel(message));
 		}
+
 		updateUI();
 	}
 
 	@Override
-	public void onContactSelection(UUID uuid) {
+	public void onContactSelection(UUID uuid, boolean active) {
 		if (!uuid.equals(this.uuid)) {
 			this.uuid = uuid;
 			name.setText(UserManager.getInstance().getAgentByUuid(uuid).getName());
 			updateMessagesPanel();
+			messageField.setVisible(active);
 		}
 	}
 

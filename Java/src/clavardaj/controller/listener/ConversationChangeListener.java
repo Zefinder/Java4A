@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public interface ConversationChangeListener {
 
-	void onContactSelection(UUID uuid);
+	void onContactSelection(UUID uuid, boolean active);
 	
 }
