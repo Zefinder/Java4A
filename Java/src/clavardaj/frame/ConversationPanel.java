@@ -1,6 +1,5 @@
 package clavardaj.frame;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -78,6 +76,7 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 			public void actionPerformed(ActionEvent e) {
 				String text = messageField.getText();
 				if (!(text).equals("")) {
+					System.out.println(text.length());
 					TextMessage message = new TextMessage(messageField.getText(), umanager.getCurrentAgent().getUuid(),
 							uuid);
 					lmanager.fireMessageToSend(umanager.getCurrentAgent(), message);
@@ -93,11 +92,11 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		});
 		messageField.setMaximumSize(new Dimension(this.getMaximumSize().width, 30));
 
+		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		// TODO Ne pas afficher le field si on n'est pas sur un contact !
 		this.add(name);
 		this.add(scrollPane);
 		this.add(messageField);
-
-		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 	}
 
 	private JScrollPane buildMessagesPanel() {
@@ -132,6 +131,7 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 
 		for (Message message : messages) {
 			messagesPanel.add(new MessagePanel(message));
+			messagesPanel.add(Box.createVerticalStrut(5));
 		}
 
 		updateUI();

@@ -49,12 +49,11 @@ public class MainFrame extends JFrame {
 
 		this.setVisible(false);
 	}
-	
-	private static String normalizeString(String s) 
-	{
-	    s = Normalizer.normalize(s, Normalizer.Form.NFD);
-	    s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
-	    return s.toLowerCase();
+
+	private static String normalizeString(String s) {
+		s = Normalizer.normalize(s, Normalizer.Form.NFD);
+		s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+		return s.toLowerCase();
 	}
 
 	private JPanel buildLeftHandPanel() {

@@ -10,6 +10,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import clavardaj.controller.UserManager;
 import clavardaj.model.FileMessage;
@@ -23,7 +24,7 @@ public class MessagePanel extends JPanel {
 	public MessagePanel(Message message) {
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 		String line = "";
-		JLabel messageBox;
+		JTextArea messageBox;
 
 		if (message.getSender().equals(UserManager.getInstance().getCurrentAgent().getUuid())) {
 			if (message instanceof TextMessage) {
@@ -32,11 +33,8 @@ public class MessagePanel extends JPanel {
 				line = "Vous avez reçu un fichier : " + ((FileMessage) message).getFileName();
 			}
 
-			messageBox = new JLabel(line);
-			messageBox.setBackground(Color.pink);
-			messageBox.setBorder(BorderFactory.createLineBorder(Color.black));
-			messageBox.setOpaque(true);
-			this.add(Box.createHorizontalGlue());
+			messageBox = createMessageBox(line);
+//			this.add(Box.createHorizontalGlue());
 			this.add(messageBox);
 		} else {
 			if (message instanceof TextMessage) {
@@ -45,21 +43,9 @@ public class MessagePanel extends JPanel {
 				line = "Vous avez envoyé un fichier : " + ((FileMessage) message).getFileName();
 			}
 
-			messageBox = new JLabel(line);
-			messageBox.setBackground(Color.pink);
-			messageBox.setBorder(BorderFactory.createLineBorder(Color.black));
-			messageBox.setOpaque(true);
-
-//			If the text needs to wrap
-//			double n = parentWidth / messageBox.getSize().getWidth();
-//			int maxLen = (int) (line.length() / n);
-//			for (int i = 0; i < n-1; i++) {
-//				line = line.substring(0, i * maxLen) + "\n" + line.substring(i * maxLen);
-//				messageBox = new JLabel(line);
-//			}
-
+			messageBox = createMessageBox(line);
 			this.add(messageBox);
-			this.add(Box.createHorizontalGlue());
+//			this.add(Box.createHorizontalGlue());
 		}
 
 		LocalDateTime date = message.getDate();
@@ -68,6 +54,34 @@ public class MessagePanel extends JPanel {
 		} else {
 			this.add(new JLabel(date.format(DateTimeFormatter.ofPattern("   dd LLL uuuu, HH : mm"))));
 		}
+		
+		
+	}
+
+	private JTextArea createMessageBox(String line) {
+		// ATTENTION, ne pas utiliser getPreferredSize !!!!!
+		// Augmente plus on le remplit !
+		JTextArea messageBox = new JTextArea(line, 0, 50);
+		System.out.println(messageBox.getFontMetrics(messageBox.getFont()).stringWidth(line));
+		System.out.println(messageBox.getPreferredSize().width);
+		System.out.println(messageBox.getPreferredScrollableViewportSize().width);
+		System.out.println(messageBox.getFontMetrics(messageBox.getFont()).stringWidth(line)
+				/ (double) messageBox.getPreferredScrollableViewportSize().width);
+		System.out.println();
+
+		messageBox.setRows((int) Math.ceil((double) messageBox.getFontMetrics(messageBox.getFont()).stringWidth(line)
+				/ (double) messageBox.getPreferredScrollableViewportSize().width));
+		messageBox.setLineWrap(true);
+		messageBox.setWrapStyleWord(true);
+		messageBox.setBackground(Color.pink);
+		messageBox.setBorder(BorderFactory.createLineBorder(Color.black));
+		messageBox.setOpaque(true);
+		messageBox.setEditable(false);
+		messageBox.setMaximumSize(messageBox.getPreferredSize());
+
+//		System.out.println(messageBox.getFontMetrics(messageBox.getFont()).stringWidth("m"));
+
+		return messageBox;
 	}
 
 }
