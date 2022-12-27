@@ -34,8 +34,8 @@ public class MessagePanel extends JPanel {
 
 			messageBox = new JLabel(line);
 			messageBox.setBackground(Color.pink);
-			messageBox.setOpaque(true);
 			messageBox.setBorder(BorderFactory.createLineBorder(Color.black));
+			messageBox.setOpaque(true);
 			this.add(Box.createHorizontalGlue());
 			this.add(messageBox);
 		} else {
@@ -47,8 +47,17 @@ public class MessagePanel extends JPanel {
 
 			messageBox = new JLabel(line);
 			messageBox.setBackground(Color.pink);
-			messageBox.setOpaque(true);
 			messageBox.setBorder(BorderFactory.createLineBorder(Color.black));
+			messageBox.setOpaque(true);
+
+//			If the text needs to wrap
+//			double n = parentWidth / messageBox.getSize().getWidth();
+//			int maxLen = (int) (line.length() / n);
+//			for (int i = 0; i < n-1; i++) {
+//				line = line.substring(0, i * maxLen) + "\n" + line.substring(i * maxLen);
+//				messageBox = new JLabel(line);
+//			}
+
 			this.add(messageBox);
 			this.add(Box.createHorizontalGlue());
 		}

@@ -15,6 +15,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 //import clavardaj.controller.DBManager;
@@ -33,6 +34,7 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 	private UUID uuid;
 	private List<Message> messages; // les messages du panel
 	private List<Message> messagesBebou, messagesCube; // listes uniquement pour les tests, pour éviter la bdd
+	private JScrollPane scrollPane;
 	private JPanel messagesPanel;
 
 	private ListenerManager lmanager = ListenerManager.getInstance();
@@ -68,7 +70,7 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 
 		this.name = new JLabel("");
 		this.messages = new ArrayList<>();
-		this.messagesPanel = buildMessagesPanel();
+		this.scrollPane = buildMessagesPanel();
 
 		this.messageField = new JTextField();
 		messageField.addActionListener(new ActionListener() {
@@ -93,26 +95,29 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		messageField.setMaximumSize(new Dimension(this.getMaximumSize().width, 30));
 
 		this.add(name);
-		this.add(messagesPanel);
+		this.add(scrollPane);
 		this.add(messageField);
 
 		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 	}
 
-	private JPanel buildMessagesPanel() {
+	private JScrollPane buildMessagesPanel() {
 		JPanel panel = new JPanel();
 		panel.add(Box.createVerticalGlue());
 		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-		panel.setBorder(BorderFactory.createLineBorder(Color.black));
+//		panel.setBorder(BorderFactory.createLineBorder(Color.black));
+		this.messagesPanel = panel;
+		
+		JScrollPane scroll = new JScrollPane(messagesPanel);
 
-		return panel;
+		return scroll;
 	}
 
 	private void rebuildMessagesPanel() {
 		this.messagesPanel.removeAll();
 		this.messagesPanel.add(Box.createVerticalGlue());
 		this.messagesPanel.setLayout(new BoxLayout(this.messagesPanel, BoxLayout.PAGE_AXIS));
-		this.messagesPanel.setBorder(BorderFactory.createLineBorder(Color.black));
+//		this.messagesPanel.setBorder(BorderFactory.createLineBorder(Color.black));
 	}
 
 	private void updateMessagesPanel() {
@@ -131,6 +136,7 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		for (Message message : messages) {
 			messagesPanel.add(new MessagePanel(message));
 		}
+		updateUI();
 	}
 
 	@Override

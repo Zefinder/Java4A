@@ -7,6 +7,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -48,6 +49,13 @@ public class MainFrame extends JFrame {
 
 		this.setVisible(false);
 	}
+	
+	private static String normalizeString(String s) 
+	{
+	    s = Normalizer.normalize(s, Normalizer.Form.NFD);
+	    s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+	    return s.toLowerCase();
+	}
 
 	private JPanel buildLeftHandPanel() {
 		JPanel panel = new JPanel();
@@ -76,7 +84,20 @@ public class MainFrame extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				contacts.get(0).setVisible(false);
+				String search = normalizeString(searchField.getText());
+				if (search.equals("")) {
+					for (ContactPanel contact : contacts) {
+						contact.setVisible(true);
+					}
+				} else {
+					for (ContactPanel contact : contacts) {
+						if (normalizeString(contact.getLogin()).contains(search)) {
+							contact.setVisible(true);
+						} else {
+							contact.setVisible(false);
+						}
+					}
+				}
 			}
 		});
 
