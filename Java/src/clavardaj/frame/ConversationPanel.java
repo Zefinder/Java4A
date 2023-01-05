@@ -55,7 +55,7 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 
 		messagesBebou.add(new TextMessage("Hey bébou !", uuidMe, uuidBebs,
 				LocalDateTime.parse("2018-05-26 12:14", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))));
-		messagesBebou.add(new TextMessage("Hey cube", uuidBebs, uuidMe));
+		messagesBebou.add(new TextMessage("Hey cube", uuidBebs, uuidMe, LocalDateTime.now().minusDays(1)));
 		messagesBebou.add(new TextMessage("Comment ça va ?", uuidMe, uuidBebs));
 		messagesBebou.add(new TextMessage("Moi ça va bien en tout cas. Tiens regarde ça", uuidMe, uuidBebs));
 
@@ -69,6 +69,7 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		this.name = new JLabel("");
 		this.messages = new ArrayList<>();
 		this.scrollPane = buildMessagesPanel();
+		this.scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
 		this.messageField = new JTextField();
 		messageField.addActionListener(new ActionListener() {
@@ -76,7 +77,6 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 			public void actionPerformed(ActionEvent e) {
 				String text = messageField.getText();
 				if (!(text).equals("")) {
-					System.out.println(text.length());
 					TextMessage message = new TextMessage(messageField.getText(), umanager.getCurrentAgent().getUuid(),
 							uuid);
 					lmanager.fireMessageToSend(umanager.getCurrentAgent(), message);
