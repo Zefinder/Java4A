@@ -19,5 +19,11 @@ public class TextMessage extends Message{
 	public String getStringContent() {
 		return content;
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("%s : %s", super.toString(), content);
+		
+	}
 
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 public abstract class Message {
 
@@ -46,7 +47,8 @@ public abstract class Message {
 	@Override
 	public String toString() {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-		return String.format("[%s] %s -> %s", date.format(formatter), sender.toString(), receiver.toString());
+		return String.format("[%s] %s -> %s", Optional.ofNullable(date).orElse(LocalDateTime.now()).format(formatter),
+				sender, receiver);
 	}
 
 }

@@ -35,6 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 
+import clavardaj.controller.DBManager;
 import clavardaj.controller.ListenerManager;
 import clavardaj.controller.PacketManager;
 import clavardaj.controller.ThreadManager;
@@ -67,7 +68,7 @@ public class TestPacketFrame extends JFrame {
 	ThreadManager tmanager = ThreadManager.getInstance();
 	ListenerManager lmanager = ListenerManager.getInstance();
 	PacketManager pmanager = PacketManager.getInstance();
-	// DBManager dmanager = DBManager.getInstance();
+	DBManager dmanager = DBManager.getInstance();
 	UserManager umanager = UserManager.getInstance();
 
 	public TestPacketFrame() {

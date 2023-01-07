@@ -13,6 +13,7 @@ import java.util.UUID;
 import clavardaj.controller.listener.LoginListener;
 import clavardaj.controller.listener.MessageListener;
 import clavardaj.model.Agent;
+import clavardaj.model.FileMessage;
 import clavardaj.model.Message;
 import clavardaj.model.TextMessage;
 
@@ -106,17 +107,31 @@ public class DBManager implements LoginListener, MessageListener {
 
 		if (!message) {
 			statement.execute(
-					"CREATE TABLE `clavardaj`.`message` ( `userSend` VARCHAR(36) NOT NULL , `userRcv` VARCHAR(36) NOT NULL , `date` DATETIME NOT NULL , `content` VARCHAR(2048) NOT NULL , PRIMARY KEY (`userSend`, `userRcv`, `date`));");
+					"CREATE TABLE `clavardaj`.`message` ( `userSend` VARCHAR(36) NOT NULL , `userRcv` VARCHAR(36) NOT NULL , `date` DATETIME NOT NULL , `nano` INT NOT NULL , `content` VARCHAR(2048) NOT NULL , `isFile` INT NOT NULL , PRIMARY KEY (`userSend`, `userRcv`, `date`, `nano`));");
 		}
 
 		resultSet.close();
+		statement.close();
 	}
 
 	private void addMessage(Message message) throws SQLException {
+		statement = connection.createStatement();
+		String content;
+		int isFile = 0;
+
+		if (message instanceof TextMessage)
+			content = new String(message.getContent());
+		else {
+			content = ((FileMessage) message).getFileName();
+			isFile = 1;
+		}
+
 		statement.execute(String.format(
-				"INSERT INTO `message` (`userSend`, `userRcv`, `date`, `content`) VALUES ('%s', '%s', '%s', '%s');",
+				"INSERT INTO `message` (`userSend`, `userRcv`, `date`, `nano`, `content`, `isFile`) VALUES ('%s', '%s', '%s', %d, '%s', %d);",
 				message.getSender().getUuid(), message.getReceiver().getUuid(), message.getDate().format(formatter),
-				message.getContent()));
+				message.getDate().getNano(), content, isFile));
+	
+		statement.close();
 	}
 
 	/**
@@ -127,8 +142,11 @@ public class DBManager implements LoginListener, MessageListener {
 	 * @throws SQLException if a database access error occurs
 	 */
 	public void addUser(Agent agent, String passwd) throws SQLException {
+		statement = connection.createStatement();
 		statement.execute(String.format("INSERT INTO `user` (`uuid`, `login`, `passwd`) VALUES ('%s', '%s', '%s');",
 				agent.getUuid(), agent.getName(), passwd));
+		
+		statement.close();
 	}
 
 	/**
@@ -141,6 +159,7 @@ public class DBManager implements LoginListener, MessageListener {
 	 * @see Message
 	 */
 	public List<? extends Message> requestMessages(Agent agent) throws SQLException {
+		statement = connection.createStatement();
 		List<Message> messages = new ArrayList<>();
 
 		ResultSet resultSet = statement.executeQuery(
@@ -152,12 +171,19 @@ public class DBManager implements LoginListener, MessageListener {
 			UUID userSend = UUID.fromString(resultSet.getString("userSend"));
 			UUID userRcv = UUID.fromString(resultSet.getString("userRcv"));
 			LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
+			int isFile = Integer.parseInt(resultSet.getString("isFile"));
 
-			messages.add(
-					new TextMessage(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date));
+			if (isFile == 0)
+				messages.add(new TextMessage(content, umanager.getAgentByUuid(userSend),
+						umanager.getAgentByUuid(userRcv), date));
+			else
+				messages.add(new FileMessage(content, null, umanager.getAgentByUuid(userSend),
+						umanager.getAgentByUuid(userRcv), date));
 		}
 
 		resultSet.close();
+		statement.close();
+		
 		return messages;
 	}
 
@@ -169,32 +195,41 @@ public class DBManager implements LoginListener, MessageListener {
 	 * @throws SQLException if a database access error occurs
 	 */
 	public Message requestMessage(Agent agent) throws SQLException {
+		statement = connection.createStatement();
 		ResultSet resultSet = statement.executeQuery(String.format(
-				"SELECT `message`.* FROM `message` WHERE userSend = '1544080c-8643-41cb-a2be-2962ce842b8a' OR userRcv = '1544080c-8643-41cb-a2be-2962ce842b8a' ORDER BY date DESC;",
+				"SELECT `message`.* FROM `message` WHERE userSend = '%s' OR userRcv = '%s' ORDER BY nano DESC;",
 				agent.getUuid(), agent.getUuid()));
 
-		resultSet.next();
+		if (resultSet.next()) {
+			String content = resultSet.getString("content");
+			UUID userSend = UUID.fromString(resultSet.getString("userSend"));
+			UUID userRcv = UUID.fromString(resultSet.getString("userRcv"));
+			LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
+			int isFile = Integer.parseInt(resultSet.getString("isFile"));
 
-		String content = resultSet.getString("content");
-		UUID userSend = UUID.fromString(resultSet.getString("userSend"));
-		UUID userRcv = UUID.fromString(resultSet.getString("userRcv"));
-		LocalDateTime date = LocalDateTime.parse(resultSet.getString("date"), formatter);
-
-		resultSet.close();
-		return new TextMessage(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv), date);
+			resultSet.close();
+			statement.close();
+			
+			if (isFile == 0)
+				return new TextMessage(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv),
+						date);
+			else
+				return new FileMessage(content, null, umanager.getAgentByUuid(userSend),
+						umanager.getAgentByUuid(userRcv), date);
+		} else
+			return null;
 	}
 
 	/**
 	 * Check if the login and password match to any line of the user table.
 	 * 
-	 * @param login the agent's login
+	 * @param login  the agent's login
 	 * @param passwd the agent's password
 	 * @return the agent that matches (or null if none matches)
 	 * @throws SQLException
 	 */
 	public Agent checkUser(String login, String passwd) throws SQLException {
-		// SELECT * FROM user WHERE login = 'a' AND passwd = 'A';
-
+		statement = connection.createStatement();
 		ResultSet resultSet = statement.executeQuery(
 				String.format("SELECT `user`.* FROM `user` WHERE login = '%s' AND passwd = '%s';", login, passwd));
 
@@ -203,6 +238,8 @@ public class DBManager implements LoginListener, MessageListener {
 			return new Agent(uuid, null, login);
 		}
 
+		resultSet.close();
+		statement.close();
 		return null;
 	}
 
@@ -216,18 +253,6 @@ public class DBManager implements LoginListener, MessageListener {
 	public static DBManager getInstance() {
 		return instance;
 	}
-
-//	public static void main(String[] args) throws UnknownHostException, IOException {
-//		Socket socket = new Socket("10.32.44.113", 9000);
-//		
-//		DataInputStream in = new DataInputStream(socket.getInputStream());
-//		int port = in.readInt();
-//		
-//		socket.close();
-//		socket = new Socket("10.32.44.113", port);
-//		DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-//		out.writeUTF("Coucou!");
-//	}
 
 	@Override
 	public void onAgentLogin(Agent agent) {
@@ -296,7 +321,7 @@ public class DBManager implements LoginListener, MessageListener {
 		System.out.println();
 
 		Message message = manager.requestMessage(a);
-		System.out.println(message.toString());
+		System.out.println(message);
 	}
 
 }
