@@ -249,7 +249,8 @@ public class TestPacketFrame extends JFrame {
 
 			if (buttonName.equals("PacketEmtMessage")) {
 				if (field.isEnabled())
-					message = new TextMessage(field.getText(), umanager.getCurrentAgent(), agent, LocalDateTime.now());
+					message = new TextMessage(field.getText(), umanager.getCurrentAgent().getUuid(), agent.getUuid(),
+							LocalDateTime.now());
 				else {
 					JFileChooser chooser = new JFileChooser();
 					chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -258,7 +259,8 @@ public class TestPacketFrame extends JFrame {
 					if (answer == JFileChooser.APPROVE_OPTION) {
 						File file = chooser.getSelectedFile();
 						try {
-							message = Message.createFileMessage(file, umanager.getCurrentAgent(), agent);
+							message = Message.createFileMessage(file, umanager.getCurrentAgent().getUuid(),
+									agent.getUuid());
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}

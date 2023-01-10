@@ -28,7 +28,7 @@ public class ContactPanel extends JPanel implements LoginChangeListener, LoginLi
 	enum State {
 		CONNECTED, DISCONNECTED;
 	}
-	
+
 	private UUID uuid;
 
 	private String login;
@@ -41,13 +41,23 @@ public class ContactPanel extends JPanel implements LoginChangeListener, LoginLi
 
 	private JLabel labelLogin;
 
+	public ContactPanel(String login, UUID uuid, State state) {
+		this.login = login;
+		this.state = state;
+		this.uuid = uuid;
+		init();
+	}
+
 	public ContactPanel(String login, State state) {
+		this.login = login;
+		this.state = state;
+		init();
+	}
+
+	private void init() {
 		ListenerManager.getInstance().addLoginChangeListener(this);
 		ListenerManager.getInstance().addLoginListener(this);
 		this.addMouseListener(this);
-
-		this.login = login;
-		this.state = state;
 
 		this.setLayout(new GridBagLayout());
 
@@ -55,7 +65,7 @@ public class ContactPanel extends JPanel implements LoginChangeListener, LoginLi
 
 		if (state == State.DISCONNECTED)
 			labelLogin.setForeground(new Color(150, 150, 150));
-		
+
 		this.add(labelLogin);
 
 		this.setPreferredSize(new Dimension(200, 50));
@@ -131,10 +141,10 @@ public class ContactPanel extends JPanel implements LoginChangeListener, LoginLi
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		JOptionPane.showMessageDialog(null,
-				String.format("C'est le moment où on ouvre la conversation avec %s, c'est ça ?", login), "Mmmmh",
-				JOptionPane.INFORMATION_MESSAGE);
-		ListenerManager.getInstance().fireContactSelection(uuid);
+//		JOptionPane.showMessageDialog(null,
+//				String.format("C'est le moment où on ouvre la conversation avec %s, c'est ça ?", login), "Mmmmh",
+//				JOptionPane.INFORMATION_MESSAGE);
+		ListenerManager.getInstance().fireContactSelection(uuid, this.state == State.CONNECTED);
 	}
 
 	@Override

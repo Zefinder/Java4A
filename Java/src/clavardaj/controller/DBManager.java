@@ -58,7 +58,6 @@ public class DBManager implements LoginListener, MessageListener {
 	private Connection connection;
 	private java.sql.Statement statement;
 	private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-	private UserManager umanager = UserManager.getInstance();
 
 	private DBManager() {
 		ListenerManager.getInstance().addLoginListener(this);
@@ -128,9 +127,9 @@ public class DBManager implements LoginListener, MessageListener {
 
 		statement.execute(String.format(
 				"INSERT INTO `message` (`userSend`, `userRcv`, `date`, `nano`, `content`, `isFile`) VALUES ('%s', '%s', '%s', %d, '%s', %d);",
-				message.getSender().getUuid(), message.getReceiver().getUuid(), message.getDate().format(formatter),
+				message.getSender(), message.getReceiver(), message.getDate().format(formatter),
 				message.getDate().getNano(), content, isFile));
-	
+
 		statement.close();
 	}
 
@@ -145,7 +144,7 @@ public class DBManager implements LoginListener, MessageListener {
 		statement = connection.createStatement();
 		statement.execute(String.format("INSERT INTO `user` (`uuid`, `login`, `passwd`) VALUES ('%s', '%s', '%s');",
 				agent.getUuid(), agent.getName(), passwd));
-		
+
 		statement.close();
 	}
 
@@ -174,16 +173,14 @@ public class DBManager implements LoginListener, MessageListener {
 			int isFile = Integer.parseInt(resultSet.getString("isFile"));
 
 			if (isFile == 0)
-				messages.add(new TextMessage(content, umanager.getAgentByUuid(userSend),
-						umanager.getAgentByUuid(userRcv), date));
+				messages.add(new TextMessage(content, userSend, userRcv, date));
 			else
-				messages.add(new FileMessage(content, null, umanager.getAgentByUuid(userSend),
-						umanager.getAgentByUuid(userRcv), date));
+				messages.add(new FileMessage(content, null, userSend, userRcv, date));
 		}
 
 		resultSet.close();
 		statement.close();
-		
+
 		return messages;
 	}
 
@@ -209,13 +206,11 @@ public class DBManager implements LoginListener, MessageListener {
 
 			resultSet.close();
 			statement.close();
-			
+
 			if (isFile == 0)
-				return new TextMessage(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv),
-						date);
+				return new TextMessage(content, userSend, userRcv, date);
 			else
-				return new FileMessage(content, null, umanager.getAgentByUuid(userSend),
-						umanager.getAgentByUuid(userRcv), date);
+				return new FileMessage(content, null, userSend, userRcv, date);
 		} else
 			return null;
 	}

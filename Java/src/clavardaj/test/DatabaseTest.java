@@ -37,11 +37,11 @@ class DatabaseTest {
 		UserManager.getInstance().onAgentLogin(a);
 		UserManager.getInstance().onAgentLogin(b);
 
-		atob = new TextMessage("a -> b", a, b, LocalDateTime.now());
+		atob = new TextMessage("a -> b", a.getUuid(), b.getUuid());
 		Thread.sleep(1000);
-		btoa = new TextMessage("b -> a", b, a, LocalDateTime.now());
+		btoa = new TextMessage("b -> a", b.getUuid(), a.getUuid());
 		Thread.sleep(1000);
-		file = new FileMessage("Test.txt", new byte[] {}, a, b, LocalDateTime.now());
+		file = new FileMessage("Test.txt", new byte[0], a.getUuid(), b.getUuid());
 	}
 
 	@Test

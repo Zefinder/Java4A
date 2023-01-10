@@ -324,8 +324,8 @@ public class ListenerManager {
 		requestMessageListenerList.forEach(listener -> listener.onRequestAllMessages(agent));
 	}
 	
-	public void fireContactSelection(UUID uuid) {
-		conversationChangeListenerList.forEach(listener -> listener.onContactSelection(uuid));
+	public void fireContactSelection(UUID uuid, boolean active) {
+		conversationChangeListenerList.forEach(listener -> listener.onContactSelection(uuid, active));
 	}
 
 	/**

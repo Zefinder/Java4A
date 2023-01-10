@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.UUID;
 
 import clavardaj.Main;
 import clavardaj.controller.UserManager;
@@ -40,7 +41,7 @@ public abstract class UserThread {
 		}
 	}
 
-	public Message read(Agent sender, boolean isFile) {
+	public Message read(UUID sender, boolean isFile) {
 		Message message = null;
 		String fileName = "";
 		try {
@@ -51,11 +52,10 @@ public abstract class UserThread {
 				System.out.println(len);
 				newName = readFile(len, fileName);
 				message = new FileMessage(fileName, newName.getBytes(), sender,
-						UserManager.getInstance().getCurrentAgent(), LocalDateTime.now());
-
+						UserManager.getInstance().getCurrentAgent().getUuid(), LocalDateTime.now());
 			} else {
 				String content = in.readUTF();
-				message = new TextMessage(content, sender, UserManager.getInstance().getCurrentAgent(),
+				message = new TextMessage(content, sender, UserManager.getInstance().getCurrentAgent().getUuid(),
 						LocalDateTime.now());
 			}
 		} catch (IOException | NoSuchAlgorithmException e) {
