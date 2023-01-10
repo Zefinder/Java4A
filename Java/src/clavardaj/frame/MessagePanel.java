@@ -35,6 +35,7 @@ public class MessagePanel extends JPanel {
 
 		// Nom expéditeur
 		text = new JEditorPane();
+		text.setBackground(Color.pink);
 		text.setContentType("text/html");
 		text.setEditable(false);
 		if (message.getSender().equals(umanager.getCurrentAgent().getUuid())) {
@@ -48,6 +49,7 @@ public class MessagePanel extends JPanel {
 
 		// Date
 		text = new JEditorPane();
+		text.setBackground(Color.pink);
 		text.setContentType("text/html");
 		text.setEditable(false);
 		if (isFromToday(message)) {
@@ -62,6 +64,7 @@ public class MessagePanel extends JPanel {
 		this.add(text, c);
 
 		text = new JEditorPane();
+		text.setBackground(Color.pink);
 		text.setContentType("text/html");
 		text.setEditable(false);
 		if (message instanceof TextMessage) {
@@ -96,8 +99,12 @@ public class MessagePanel extends JPanel {
 		c.gridx = 0;
 		c.gridy = 1;
 		c.gridwidth = 2;
+		c.weightx = 1;
 		this.add(text, c);
+		text.setMinimumSize(this.getPreferredSize());
 
+		this.setBorder(BorderFactory.createLineBorder(Color.RED));
+		
 //		text = createMessageBox(line);
 	}
 

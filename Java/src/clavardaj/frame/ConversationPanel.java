@@ -1,5 +1,6 @@
 package clavardaj.frame;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -86,7 +88,8 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 						messagesCube.add(message);
 					}
 					messageField.setText("");
-					updateMessagesPanel();
+					addMessageToPanel(message);
+					messagesPanel.add(Box.createVerticalStrut(5));
 				}
 			}
 		});
@@ -100,24 +103,23 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 	}
 
 	private JScrollPane buildMessagesPanel() {
-		JPanel panel = new JPanel();
-		panel.add(Box.createVerticalGlue());
-		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
-		this.messagesPanel = panel;
-
+		messagesPanel = new JPanel();
+		messagesPanel.setLayout(new BoxLayout(messagesPanel, BoxLayout.PAGE_AXIS));
+		messagesPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+		
 		JScrollPane scroll = new JScrollPane(messagesPanel);
+		messagesPanel.add(Box.createVerticalStrut(scroll.getViewport().getHeight()));
 
 		return scroll;
 	}
 
 	private void rebuildMessagesPanel() {
-		this.messagesPanel.removeAll();
-		this.messagesPanel.add(Box.createVerticalGlue());
-		this.messagesPanel.setLayout(new BoxLayout(this.messagesPanel, BoxLayout.PAGE_AXIS));
+		messagesPanel.removeAll();
+		messagesPanel.setLayout(new BoxLayout(messagesPanel, BoxLayout.PAGE_AXIS));
+		messagesPanel.add(Box.createVerticalStrut((int) this.getParent().getPreferredSize().getHeight()));
 	}
 
 	private void updateMessagesPanel() {
-		rebuildMessagesPanel();
 		UUID uuidBebs = UserManager.getInstance().getAgentList().get(0).getUuid();
 		UUID uuidCube = UserManager.getInstance().getAgentList().get(1).getUuid();
 //		TODO à remplacer une fois que la db est en place
@@ -130,10 +132,17 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		}
 
 		for (Message message : messages) {
-			messagesPanel.add(new MessagePanel(message));
+			JPanel messagePanel = new MessagePanel(message);
+			messagesPanel.add(messagePanel);
 			messagesPanel.add(Box.createVerticalStrut(5));
 		}
 
+		updateUI();
+	}
+	
+	private void addMessageToPanel(Message message) {
+		messages.add(message);
+		messagesPanel.add(new MessagePanel(message));
 		updateUI();
 	}
 
@@ -142,6 +151,7 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		if (!uuid.equals(this.uuid)) {
 			this.uuid = uuid;
 			name.setText(UserManager.getInstance().getAgentByUuid(uuid).getName());
+			rebuildMessagesPanel();
 			updateMessagesPanel();
 			messageField.setVisible(active);
 		}
