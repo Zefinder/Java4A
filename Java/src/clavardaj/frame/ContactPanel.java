@@ -28,7 +28,7 @@ public class ContactPanel extends JPanel implements LoginChangeListener, LoginLi
 	enum State {
 		CONNECTED, DISCONNECTED;
 	}
-	
+
 	private UUID uuid;
 
 	private String login;
@@ -55,7 +55,7 @@ public class ContactPanel extends JPanel implements LoginChangeListener, LoginLi
 
 		if (state == State.DISCONNECTED)
 			labelLogin.setForeground(new Color(150, 150, 150));
-		
+
 		this.add(labelLogin);
 
 		this.setPreferredSize(new Dimension(200, 50));
@@ -120,7 +120,7 @@ public class ContactPanel extends JPanel implements LoginChangeListener, LoginLi
 	}
 
 	@Override
-	public void onSelfLogin(UUID uuid, String name) {
+	public void onSelfLogin(UUID uuid, String name, String password) {
 
 	}
 

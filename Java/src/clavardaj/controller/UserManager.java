@@ -91,7 +91,7 @@ public class UserManager implements LoginListener, LoginChangeListener {
 	}
 
 	@Override
-	public void onSelfLogin(UUID uuid, String name) {
+	public void onSelfLogin(UUID uuid, String name, String password) {
 		try {
 			this.currentAgent = new Agent(uuid, InetAddress.getLocalHost(), name);
 		} catch (UnknownHostException e) {

@@ -37,7 +37,7 @@ public interface LoginListener {
 	 * @param uuid the {@link UUID} of the main agent
 	 * @param name the name of the main agent
 	 */
-	void onSelfLogin(UUID uuid, String name);
+	void onSelfLogin(UUID uuid, String name, String password);
 
 	/**
 	 * Invoked when the main agent logs out.

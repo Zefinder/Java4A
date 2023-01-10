@@ -56,6 +56,7 @@ class PacketTests implements LoginListener, LoginChangeListener, MessageToTransf
 
 	private static boolean loginOk, loginChangeOk, openConversationOk, closeConversationOk, sendMessageOk, logoutOk;
 
+	@SuppressWarnings("deprecation")
 	@BeforeAll
 	public static void init() throws InterruptedException, UnknownHostException {
 		p = PacketManager.getInstance();
@@ -66,7 +67,7 @@ class PacketTests implements LoginListener, LoginChangeListener, MessageToTransf
 		ListenerManager.getInstance().addMessageToTransferListener(instance);
 		ListenerManager.getInstance().addConversationListener(instance);
 
-		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), "Host");
+		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), "Host", "null");
 
 		Thread.sleep(200);
 
@@ -89,6 +90,7 @@ class PacketTests implements LoginListener, LoginChangeListener, MessageToTransf
 
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	@Order(1)
 	public void testPacketLogin() throws UnknownHostException, InterruptedException {
@@ -100,6 +102,7 @@ class PacketTests implements LoginListener, LoginChangeListener, MessageToTransf
 		assertTrue(loginOk);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	@Order(2)
 	public void testPacketChangeLogin() throws InterruptedException {
@@ -110,6 +113,7 @@ class PacketTests implements LoginListener, LoginChangeListener, MessageToTransf
 		assertTrue(loginChangeOk);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	@Order(6)
 	public void testPacketLogout() throws InterruptedException {
@@ -120,6 +124,7 @@ class PacketTests implements LoginListener, LoginChangeListener, MessageToTransf
 		assertTrue(logoutOk);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	@Order(3)
 	public void testPacketOpenConversation() throws InterruptedException {
@@ -130,6 +135,7 @@ class PacketTests implements LoginListener, LoginChangeListener, MessageToTransf
 		assertTrue(openConversationOk);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	@Order(5)
 	public void testPacketCloseConversation() throws InterruptedException {
@@ -140,6 +146,7 @@ class PacketTests implements LoginListener, LoginChangeListener, MessageToTransf
 		assertTrue(closeConversationOk);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	@Order(4)
 	public void testPacketMessage() throws InterruptedException {
@@ -205,7 +212,7 @@ class PacketTests implements LoginListener, LoginChangeListener, MessageToTransf
 	}
 
 	@Override
-	public void onSelfLogin(UUID uuid, String name) {
+	public void onSelfLogin(UUID uuid, String name, String password) {
 
 	}
 

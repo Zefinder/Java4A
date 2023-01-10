@@ -133,8 +133,8 @@ public class ListenerManager {
 	 * <li>PacketManager</li>
 	 * </ul>
 	 */
-	public void fireSelfLogin(UUID uuid, String name) {
-		loginListenerList.forEach(listener -> listener.onSelfLogin(uuid, name));
+	public void fireSelfLogin(UUID uuid, String name, String password) {
+		loginListenerList.forEach(listener -> listener.onSelfLogin(uuid, name, password));
 	}
 
 	/**

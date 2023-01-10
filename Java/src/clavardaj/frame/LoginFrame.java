@@ -15,10 +15,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-import clavardaj.controller.DBManager;
+import clavardaj.controller.DBManagerAdapter;
 import clavardaj.controller.ListenerManager;
+import clavardaj.controller.database.InitializationException;
 import clavardaj.model.Agent;
 
 public class LoginFrame extends JFrame {
@@ -27,7 +29,8 @@ public class LoginFrame extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = -3396247678085726366L;
-	private JTextField login, password;
+	private JTextField login;
+	private JPasswordField password;
 
 	public LoginFrame() {
 		this.setTitle("Clavardaj - Login");
@@ -80,31 +83,33 @@ public class LoginFrame extends JFrame {
 
 			Agent agent = null;
 			try {
-				agent = DBManager.getInstance().checkUser(login.getText(), password.getText());
-			} catch (SQLException e1) {
-				e1.printStackTrace();
+				// TODO Hasher le password
+				agent = DBManagerAdapter.getInstance().checkUser(login.getText(), new String(password.getPassword()));
+			} catch (SQLException | InitializationException e1) {
+				JOptionPane.showMessageDialog(this, String.format("Erreur base de données : %s", e1.getMessage()),
+						"Erreur !", JOptionPane.ERROR_MESSAGE);
+				return;
 			}
 			if (agent == null) {
-				int answer = JOptionPane.showOptionDialog(this, "I do not wish to be horny anymore !",
-						"Silence wench !", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null,
-						new String[] { "I just want to be happy", "Create the account !" }, null);
+				int answer = JOptionPane.showOptionDialog(this, "Il semblerait que le compte n'existe pas... !",
+						"Pas de compte !", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null,
+						new String[] { "Je me suis trompé de mot de passe...", "Créer le compte !" }, null);
 
 				if (answer == JOptionPane.NO_OPTION) {
 					agent = new Agent(UUID.randomUUID(), null, login.getText());
-					try {
-						DBManager.getInstance().addUser(agent, password.getText());
-					} catch (SQLException e1) {
-						e1.printStackTrace();
-					}
 				} else
 					return;
 			}
 
-			ListenerManager.getInstance().fireSelfLogin(agent.getUuid(), agent.getName());
+			ListenerManager.getInstance().fireSelfLogin(agent.getUuid(), agent.getName(),
+					new String(password.getPassword()));
+
+			MainFrame f = new MainFrame(agent.getName());
+			f.showFrame();
+			this.dispose();
 		});
 
 		framePanel.add(confirm, c);
-//		framePanel.setOpaque(false);
 
 		framePanel.setBackground(new Color(0.8f, 0.8f, 0.8f, 0.45f));
 		return framePanel;
@@ -137,7 +142,7 @@ public class LoginFrame extends JFrame {
 		panel.add(passwordLabel, c);
 
 		c.gridx = 1;
-		password = new JTextField(30);
+		password = new JPasswordField(30);
 		panel.add(password, c);
 
 		return panel;

@@ -283,7 +283,7 @@ public class PacketManager implements LoginListener {
 	}
 
 	@Override
-	public void onSelfLogin(UUID uuid, String name) {
+	public void onSelfLogin(UUID uuid, String name, String password) {
 		initThreads();
 	}
 
