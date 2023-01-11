@@ -130,7 +130,7 @@ public class ContactPanel extends JPanel implements LoginChangeListener, LoginLi
 	}
 
 	@Override
-	public void onSelfLogin(UUID uuid, String name) {
+	public void onSelfLogin(UUID uuid, String name, String password) {
 
 	}
 

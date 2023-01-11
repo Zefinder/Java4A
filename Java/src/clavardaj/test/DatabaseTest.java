@@ -9,7 +9,6 @@ import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -18,8 +17,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import clavardaj.controller.DBManager;
+import clavardaj.controller.DBManagerAdapter;
 import clavardaj.controller.UserManager;
+import clavardaj.controller.database.InitializationException;
 import clavardaj.model.Agent;
 import clavardaj.model.FileMessage;
 import clavardaj.model.Message;
@@ -29,9 +29,10 @@ class DatabaseTest {
 
 	private static Agent a, b;
 	private static Message atob, btoa, file;
+	private static DBManagerAdapter dbmanager;
 
 	@BeforeAll
-	public static void init() throws UnknownHostException, SQLException, InterruptedException {
+	public static void init() throws UnknownHostException, SQLException, InterruptedException, InitializationException {
 		a = new Agent(UUID.randomUUID(), InetAddress.getLocalHost(), "a");
 		b = new Agent(UUID.randomUUID(), InetAddress.getLocalHost(), "b");
 		UserManager.getInstance().onAgentLogin(a);
@@ -42,12 +43,14 @@ class DatabaseTest {
 		btoa = new TextMessage("b -> a", b.getUuid(), a.getUuid());
 		Thread.sleep(1000);
 		file = new FileMessage("Test.txt", new byte[0], a.getUuid(), b.getUuid());
+
+		dbmanager = DBManagerAdapter.getInstance();
+		dbmanager.init();
 	}
 
 	@Test
-	public void addUserTest() throws SQLException, UnknownHostException {
-		DBManager dbmanager = DBManager.getInstance();
-		dbmanager.addUser(a, "passwd");
+	public void addUserTest() throws SQLException, UnknownHostException, InitializationException {
+		dbmanager.onSelfLogin(a.getUuid(), a.getName(), "passwd");
 		dbmanager.onAgentLogin(b);
 
 		Agent retreivedA = dbmanager.checkUser("a", "passwd");
@@ -61,7 +64,6 @@ class DatabaseTest {
 
 	@Test
 	public void addMessageTest() throws SQLException {
-		DBManager dbmanager = DBManager.getInstance();
 		dbmanager.onMessageSent(atob);
 		dbmanager.onMessageReceived(btoa);
 		dbmanager.onMessageSent(file);
@@ -83,7 +85,7 @@ class DatabaseTest {
 			message2 = messagesB.get(messagesB.size() - i);
 
 			if (message instanceof TextMessage && message2 instanceof TextMessage) {
-				if (message.getSender().equals(a)) {
+				if (message.getSender().equals(a.getUuid())) {
 					assertEquals(((TextMessage) message).getStringContent(),
 							((TextMessage) message2).getStringContent());
 					assertEquals(((TextMessage) atob).getStringContent(), ((TextMessage) message).getStringContent());

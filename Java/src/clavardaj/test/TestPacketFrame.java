@@ -35,7 +35,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 
-import clavardaj.controller.DBManager;
 import clavardaj.controller.ListenerManager;
 import clavardaj.controller.PacketManager;
 import clavardaj.controller.ThreadManager;
@@ -68,7 +67,7 @@ public class TestPacketFrame extends JFrame {
 	ThreadManager tmanager = ThreadManager.getInstance();
 	ListenerManager lmanager = ListenerManager.getInstance();
 	PacketManager pmanager = PacketManager.getInstance();
-	DBManager dmanager = DBManager.getInstance();
+//	DBManagerAdapter dmanager = DBManagerAdapter.getInstance();
 	UserManager umanager = UserManager.getInstance();
 
 	public TestPacketFrame() {
@@ -203,7 +202,7 @@ public class TestPacketFrame extends JFrame {
 		}
 
 		@Override
-		public void onSelfLogin(UUID uuid, String name) {
+		public void onSelfLogin(UUID uuid, String name, String password) {
 		}
 
 		@Override
@@ -406,7 +405,7 @@ public class TestPacketFrame extends JFrame {
 		String str = JOptionPane.showInputDialog(null, "Choisir votre nom", "Login", JOptionPane.INFORMATION_MESSAGE);
 
 		TestPacketFrame frame = new TestPacketFrame();
-		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), (str == null) ? "" : str);
+		ListenerManager.getInstance().fireSelfLogin(UUID.randomUUID(), (str == null) ? "" : str, "");
 
 		Socket socket;
 		try {

@@ -6,19 +6,28 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.UUID;
 
+import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
-import clavardaj.controller.DBManager;
+import clavardaj.controller.DBManagerAdapter;
 import clavardaj.controller.ListenerManager;
+import clavardaj.controller.database.InitializationException;
 import clavardaj.model.Agent;
 
 public class LoginFrame extends JFrame {
@@ -27,7 +36,8 @@ public class LoginFrame extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = -3396247678085726366L;
-	private JTextField login, password;
+	private JTextField login;
+	private JPasswordField password;
 
 	public LoginFrame() {
 		this.setTitle("Clavardaj - Login");
@@ -36,7 +46,8 @@ public class LoginFrame extends JFrame {
 		this.setSize(500, 500);
 		this.setLocationRelativeTo(null);
 
-		JPanel framePanel = buildTotalPanel();
+		this.getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
+		this.getRootPane().getActionMap().put("send", new InfoAction());
 
 		this.setContentPane(new JPanel() {
 			/**
@@ -54,6 +65,8 @@ public class LoginFrame extends JFrame {
 		});
 
 		this.setLayout(new GridBagLayout());
+
+		JPanel framePanel = buildTotalPanel();
 		this.add(framePanel);
 
 		this.setVisible(false);
@@ -76,35 +89,11 @@ public class LoginFrame extends JFrame {
 
 		c.gridy = 1;
 		JButton confirm = new JButton("Login !");
-		confirm.addActionListener(e -> {
-
-			Agent agent = null;
-			try {
-				agent = DBManager.getInstance().checkUser(login.getText(), password.getText());
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-			}
-			if (agent == null) {
-				int answer = JOptionPane.showOptionDialog(this, "I do not wish to be horny anymore !",
-						"Silence wench !", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null,
-						new String[] { "I just want to be happy", "Create the account !" }, null);
-
-				if (answer == JOptionPane.NO_OPTION) {
-					agent = new Agent(UUID.randomUUID(), null, login.getText());
-					try {
-						DBManager.getInstance().addUser(agent, password.getText());
-					} catch (SQLException e1) {
-						e1.printStackTrace();
-					}
-				} else
-					return;
-			}
-
-			ListenerManager.getInstance().fireSelfLogin(agent.getUuid(), agent.getName());
-		});
+		confirm.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
+		confirm.getActionMap().put("send", new InfoAction());
+		confirm.addActionListener(new InfoAction());
 
 		framePanel.add(confirm, c);
-//		framePanel.setOpaque(false);
 
 		framePanel.setBackground(new Color(0.8f, 0.8f, 0.8f, 0.45f));
 		return framePanel;
@@ -127,6 +116,7 @@ public class LoginFrame extends JFrame {
 
 		c.gridx = 1;
 		login = new JTextField(30);
+		login.addActionListener(new InfoAction());
 		panel.add(login, c);
 
 		// 2nd item
@@ -137,18 +127,81 @@ public class LoginFrame extends JFrame {
 		panel.add(passwordLabel, c);
 
 		c.gridx = 1;
-		password = new JTextField(30);
+		password = new JPasswordField(30);
+		password.addActionListener(new InfoAction());
 		panel.add(password, c);
 
 		return panel;
 	}
 
-	public void initFrame() {
-		this.setVisible(true);
+	private static String bytesToHex(byte[] hash) {
+		StringBuilder hexString = new StringBuilder(2 * hash.length);
+		for (int i = 0; i < hash.length; i++) {
+			String hex = Integer.toHexString(0xff & hash[i]);
+			if (hex.length() == 1) {
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
+		return hexString.toString();
 	}
 
-	public static void main(String[] args) {
+	public void initFrame() {
+		this.setVisible(true);
+		login.requestFocus();
+	}
+
+	public static void main(String[] args) throws NoSuchAlgorithmException {
 		new LoginFrame().initFrame();
+	}
+
+	private class InfoAction extends AbstractAction {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3248409400135999113L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// Si le champ password est vide, on return
+			if (password.getPassword().length == 0)
+				return;
+
+			Agent agent = null;
+			String hashedPassword = "";
+			try {
+				MessageDigest shaDigest = MessageDigest.getInstance("SHA-256");
+				hashedPassword = bytesToHex(
+						shaDigest.digest(new String(password.getPassword()).getBytes(StandardCharsets.UTF_8)));
+			} catch (NoSuchAlgorithmException e2) {
+				e2.printStackTrace();
+			}
+
+			try {
+				// TODO Hasher le password
+				agent = DBManagerAdapter.getInstance().checkUser(login.getText(), hashedPassword);
+			} catch (SQLException | InitializationException e1) {
+				JOptionPane.showMessageDialog(null, String.format("Erreur base de données : %s", e1.getMessage()),
+						"Erreur !", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			if (agent == null) {
+				int answer = JOptionPane.showOptionDialog(null, "Il semblerait que le compte n'existe pas... !",
+						"Pas de compte !", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE, null,
+						new String[] { "Je me suis trompé de mot de passe...", "Créer le compte !" }, null);
+
+				if (answer == JOptionPane.NO_OPTION) {
+					agent = new Agent(UUID.randomUUID(), null, login.getText());
+				} else
+					return;
+			}
+
+			ListenerManager.getInstance().fireSelfLogin(agent.getUuid(), agent.getName(), hashedPassword);
+
+			MainFrame f = new MainFrame(agent.getName());
+			f.showFrame();
+			dispose();
+		}
 	}
 
 }

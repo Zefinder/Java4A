@@ -151,7 +151,7 @@ public class MainFrame extends JFrame {
 			e.printStackTrace();
 		}
 
-		lmanager.fireSelfLogin(UUID.randomUUID(), "it's-a me");
+		lmanager.fireSelfLogin(UUID.randomUUID(), "it's-a me", "cube");
 		lmanager.fireAgentLogin(bebs);
 		lmanager.fireAgentLogin(cube);
 
