@@ -64,7 +64,7 @@ public class MySQLManager extends DBManager {
 
 		if (!user) {
 			statement.execute(
-					"CREATE TABLE `clavardaj`.`user` ( `uuid` VARCHAR(36) NOT NULL , `login` VARCHAR(20) NOT NULL , `passwd` VARCHAR(32) NULL , PRIMARY KEY (`uuid`(36)));");
+					"CREATE TABLE `clavardaj`.`user` ( `uuid` VARCHAR(36) NOT NULL , `login` VARCHAR(20) NOT NULL , `passwd` VARCHAR(64) NULL , PRIMARY KEY (`uuid`(36)));");
 		}
 
 		if (!message) {

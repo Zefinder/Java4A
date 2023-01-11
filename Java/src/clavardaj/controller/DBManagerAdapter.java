@@ -4,12 +4,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -17,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
 import clavardaj.controller.database.DBManager;
@@ -231,6 +233,7 @@ public class DBManagerAdapter implements LoginListener, MessageListener {
 		private JTextField login;
 		private JTextField password;
 		private JComboBox<String> dbType;
+		private JButton confirm;
 
 		public DBLoginsDialog() {
 			this.setTitle("Database login");
@@ -239,6 +242,10 @@ public class DBManagerAdapter implements LoginListener, MessageListener {
 			this.setLocationRelativeTo(null);
 			this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			this.setModal(true);
+
+			this.getRootPane().setDefaultButton(confirm);
+			this.getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
+			this.getRootPane().getActionMap().put("send", new InfoAction());
 
 			JPanel panel = buildPanel();
 
@@ -261,9 +268,17 @@ public class DBManagerAdapter implements LoginListener, MessageListener {
 			JLabel passwordLabel = new JLabel("Mot de passe");
 
 			dbType = new JComboBox<>(new String[] { "MySQL", "SQLite" });
-			tableInstance = new JTextField(20);
-			login = new JTextField(20);
+			dbType.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
+			dbType.getActionMap().put("send", new InfoAction());
+
+			tableInstance = new JTextField("clavardaj", 20);
+			tableInstance.addActionListener(new InfoAction());
+
+			login = new JTextField("root", 20);
+			login.addActionListener(new InfoAction());
+
 			password = new JTextField(20);
+			password.addActionListener(new InfoAction());
 
 			// Placement
 			c.gridx = 0;
@@ -315,38 +330,10 @@ public class DBManagerAdapter implements LoginListener, MessageListener {
 
 			JPanel info = buildInfoPanel();
 
-			JButton confirm = new JButton("Se connecter");
-			confirm.addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-
-					DBManager dbManager;
-
-					try {
-						Class<?> clazz = Class.forName(
-								String.format("clavardaj.controller.database.%sManager", dbType.getSelectedItem()));
-
-						dbManager = (DBManager) clazz.getConstructor().newInstance();
-
-					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-							| IllegalArgumentException | InvocationTargetException | NoSuchMethodException
-							| SecurityException e1) {
-						e1.printStackTrace();
-						return;
-					}
-
-					try {
-						dbManager.init(tableInstance.getText(), login.getText(), password.getText());
-						setDatabaseManager(dbManager);
-						dispose();
-					} catch (SQLException e1) {
-						JOptionPane.showMessageDialog(null,
-								String.format("Erreur base de données : %s", e1.getMessage()), "Erreur !",
-								JOptionPane.ERROR_MESSAGE);
-					}
-				}
-			});
+			confirm = new JButton("Se connecter");
+			confirm.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
+			confirm.getActionMap().put("send", new InfoAction());
+			confirm.addActionListener(new InfoAction());
 
 			// Placement
 			c.gridx = 0;
@@ -366,6 +353,41 @@ public class DBManagerAdapter implements LoginListener, MessageListener {
 
 		public void showFrame() {
 			this.setVisible(true);
+		}
+
+		private class InfoAction extends AbstractAction {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -8089730140984865384L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DBManager dbManager;
+
+				try {
+					Class<?> clazz = Class.forName(
+							String.format("clavardaj.controller.database.%sManager", dbType.getSelectedItem()));
+
+					dbManager = (DBManager) clazz.getConstructor().newInstance();
+
+				} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+						| IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+						| SecurityException e1) {
+					e1.printStackTrace();
+					return;
+				}
+
+				try {
+					dbManager.init(tableInstance.getText(), login.getText(), password.getText());
+					setDatabaseManager(dbManager);
+					dispose();
+				} catch (SQLException e1) {
+					JOptionPane.showMessageDialog(null, String.format("Erreur base de données : %s", e1.getMessage()),
+							"Erreur !", JOptionPane.ERROR_MESSAGE);
+				}
+			}
 		}
 	}
 
