@@ -74,7 +74,7 @@ public class MySQLManager extends DBManager {
 
 		resultSet.close();
 		statement.close();
-		
+
 		return true;
 	}
 
@@ -93,7 +93,7 @@ public class MySQLManager extends DBManager {
 
 		statement.execute(String.format(
 				"INSERT INTO `message` (`userSend`, `userRcv`, `date`, `nano`, `content`, `isFile`) VALUES ('%s', '%s', '%s', %d, '%s', %d);",
-				message.getSender().getUuid(), message.getReceiver().getUuid(), message.getDate().format(formatter),
+				message.getSender(), message.getReceiver(), message.getDate().format(formatter),
 				message.getDate().getNano(), content, isFile));
 
 		statement.close();
@@ -140,11 +140,9 @@ public class MySQLManager extends DBManager {
 			int isFile = Integer.parseInt(resultSet.getString("isFile"));
 
 			if (isFile == 0)
-				messages.add(new TextMessage(content, umanager.getAgentByUuid(userSend),
-						umanager.getAgentByUuid(userRcv), date));
+				messages.add(new TextMessage(content, userSend, userRcv, date));
 			else
-				messages.add(new FileMessage(content, null, umanager.getAgentByUuid(userSend),
-						umanager.getAgentByUuid(userRcv), date));
+				messages.add(new FileMessage(content, null, userSend, userRcv, date));
 		}
 
 		resultSet.close();
@@ -178,11 +176,9 @@ public class MySQLManager extends DBManager {
 			statement.close();
 
 			if (isFile == 0)
-				return new TextMessage(content, umanager.getAgentByUuid(userSend), umanager.getAgentByUuid(userRcv),
-						date);
+				return new TextMessage(content, userSend, userRcv, date);
 			else
-				return new FileMessage(content, null, umanager.getAgentByUuid(userSend),
-						umanager.getAgentByUuid(userRcv), date);
+				return new FileMessage(content, null, userSend, userRcv, date);
 		} else
 			return null;
 	}

@@ -20,7 +20,6 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import clavardaj.controller.ListenerManager;
-import clavardaj.controller.UserManager;
 import clavardaj.frame.ContactPanel.State;
 import clavardaj.model.Agent;
 
@@ -35,7 +34,7 @@ public class MainFrame extends JFrame {
 	private ArrayList<ContactPanel> contacts;
 
 	private ListenerManager lmanager = ListenerManager.getInstance();
-	private UserManager umanager = UserManager.getInstance();
+//	private UserManager umanager = UserManager.getInstance();
 
 	public MainFrame(String login) {
 		this.setTitle("Clavardaj - " + login);

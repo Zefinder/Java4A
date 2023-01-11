@@ -4,9 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
+import java.util.UUID;
 
 public abstract class Message {
 

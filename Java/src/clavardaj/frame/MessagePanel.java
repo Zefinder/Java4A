@@ -1,17 +1,16 @@
 package clavardaj.frame;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import javax.swing.BorderFactory;
 import javax.swing.JEditorPane;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
@@ -69,8 +68,10 @@ public class MessagePanel extends JPanel {
 		text.setEditable(false);
 		if (message instanceof TextMessage) {
 			text.setText(((TextMessage) message).getStringContent());
+			text.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
 		} else if (message instanceof FileMessage) {
 			text.setText("<u>" + ((FileMessage) message).getFileName() + "</u>");
+			text.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			text.addMouseListener(new MouseListener() {
 				
 				@Override

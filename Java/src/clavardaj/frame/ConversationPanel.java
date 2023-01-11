@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 //import clavardaj.controller.DBManager;
 import clavardaj.controller.ListenerManager;
@@ -69,6 +70,7 @@ public class ConversationPanel extends JPanel implements ConversationChangeListe
 		messagesCube.add(new TextMessage("Désolé j'avais pas vu le message", uuidMe, uuidCube));
 
 		this.name = new JLabel("");
+		this.name.setHorizontalAlignment(SwingConstants.CENTER);
 		this.messages = new ArrayList<>();
 		this.scrollPane = buildMessagesPanel();
 		this.scrollPane.getVerticalScrollBar().setUnitIncrement(16);

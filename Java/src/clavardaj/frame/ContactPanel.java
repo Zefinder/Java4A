@@ -10,7 +10,6 @@ import java.util.UUID;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import clavardaj.controller.ListenerManager;
